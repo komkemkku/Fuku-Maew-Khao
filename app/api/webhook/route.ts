@@ -8,6 +8,7 @@ const lineConfig = {
 };
 
 // สร้าง client สำหรับสื่อสารกับ LINE
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const client = new Client(lineConfig);
 
 // ฟังก์ชันหลักสำหรับรับ Request จาก LINE
