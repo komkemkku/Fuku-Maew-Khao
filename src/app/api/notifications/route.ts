@@ -19,25 +19,14 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'daily':
-        // Check time and decide morning or evening
-        const currentHour = new Date().getHours();
-        if (currentHour >= 0 && currentHour < 12) {
-          // Morning (00:00 - 11:59)
-          await DailyNotificationService.sendMorningGreeting();
-          return NextResponse.json({ 
-            success: true, 
-            message: 'Morning greetings sent successfully',
-            time: 'morning'
-          });
-        } else {
-          // Evening (12:00 - 23:59) 
-          await DailyNotificationService.sendEveningDigest();
-          return NextResponse.json({ 
-            success: true, 
-            message: 'Evening digests sent successfully',
-            time: 'evening'
-          });
-        }
+        // For Hobby plan: run evening digest only (once per day limit)
+        await DailyNotificationService.sendEveningDigest();
+        return NextResponse.json({ 
+          success: true, 
+          message: 'Daily evening digest sent successfully',
+          time: 'evening',
+          note: 'Hobby plan limitation: once per day only'
+        });
 
       case 'morning':
         await DailyNotificationService.sendMorningGreeting();
