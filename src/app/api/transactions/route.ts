@@ -73,3 +73,45 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// PUT: แก้ไขรายการ
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, amount, description, categoryId, transactionDate } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Transaction ID is required' }, { status: 400 });
+    }
+
+    const transaction = await DatabaseService.updateTransaction(id, {
+      amount,
+      description,
+      category_id: categoryId,
+      transaction_date: transactionDate ? new Date(transactionDate) : undefined
+    });
+
+    return NextResponse.json({ transaction });
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// DELETE: ลบรายการ
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Transaction ID is required' }, { status: 400 });
+    }
+
+    await DatabaseService.deleteTransaction(id);
+    return NextResponse.json({ message: 'Transaction deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting transaction:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

@@ -168,6 +168,66 @@ export class DatabaseService {
     }
   }
 
+  static async updateTransaction(
+    transactionId: string, 
+    updates: {
+      amount?: number;
+      description?: string;
+      category_id?: string;
+      transaction_date?: Date;
+    }
+  ): Promise<Transaction> {
+    const client = await pool.connect();
+    try {
+      const setParts: string[] = [];
+      const values: (string | number | Date)[] = [];
+      let paramCount = 1;
+
+      if (updates.amount !== undefined) {
+        setParts.push(`amount = $${paramCount}`);
+        values.push(updates.amount);
+        paramCount++;
+      }
+
+      if (updates.description !== undefined) {
+        setParts.push(`description = $${paramCount}`);
+        values.push(updates.description);
+        paramCount++;
+      }
+
+      if (updates.category_id !== undefined) {
+        setParts.push(`category_id = $${paramCount}`);
+        values.push(updates.category_id);
+        paramCount++;
+      }
+
+      if (updates.transaction_date !== undefined) {
+        setParts.push(`transaction_date = $${paramCount}`);
+        values.push(updates.transaction_date);
+        paramCount++;
+      }
+
+      if (setParts.length === 0) {
+        throw new Error('No updates provided');
+      }
+
+      setParts.push(`updated_at = NOW()`);
+      values.push(transactionId);
+
+      const query = `
+        UPDATE public.transactions 
+        SET ${setParts.join(', ')} 
+        WHERE id = $${paramCount} 
+        RETURNING *
+      `;
+
+      const result = await client.query(query, values);
+      return result.rows[0];
+    } finally {
+      client.release();
+    }
+  }
+
   // Analytics and Reports
   static async getMonthlySummary(userId: string, year: number, month: number) {
     const client = await pool.connect();

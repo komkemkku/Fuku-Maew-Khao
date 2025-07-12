@@ -273,6 +273,12 @@ export function DashboardContent({ userId }: DashboardContentProps) {
               <div className="bg-white border border-blue-200 rounded-xl p-4">
                 <h3 className="font-medium text-blue-900 mb-3">📊 เครื่องมือวิเคราะห์</h3>
                 <div className="space-y-2">
+                  <a 
+                    href="/transactions"
+                    className="w-full px-4 py-2 text-left border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-blue-800 block"
+                  >
+                    📝 จัดการรายการ
+                  </a>
                   <button className="w-full px-4 py-2 text-left border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-blue-800">
                     📈 กราฟรายจ่าย
                   </button>
