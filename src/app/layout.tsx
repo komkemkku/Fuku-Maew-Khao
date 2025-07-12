@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "🐱 ฟูกุแมวขาว - Personal Finance Manager",
+  title: "🐱 Fuku Neko - Personal Finance Manager",
   description: "ผู้ช่วยการเงินส่วนตัวที่น่ารัก ผ่าน LINE Bot + Web Dashboard 💖",
 };
 

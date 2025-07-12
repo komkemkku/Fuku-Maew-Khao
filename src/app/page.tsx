@@ -3,32 +3,32 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section - สีฟ้าเป็นหลัก */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-blue-400 rounded-full"></div>
-          <div className="absolute top-32 right-20 w-16 h-16 bg-blue-300 rounded-full"></div>
-          <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-blue-200 rounded-full"></div>
+      {/* Hero Section - สีฟ้าล้วน ไม่ผสม */}
+      <div className="relative overflow-hidden bg-blue-600">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-white rounded-full"></div>
+          <div className="absolute top-32 right-20 w-16 h-16 bg-white rounded-full"></div>
+          <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-white rounded-full"></div>
         </div>
         <div className="relative container mx-auto px-4 py-20 lg:py-32">
           <div className="text-center mb-12 sm:mb-16">
             <div className="mb-6">
               <span className="text-6xl sm:text-8xl">🐱</span>
             </div>
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-blue-900 mb-6 leading-tight">
-              ฟูกุแมวขาว
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+              Fuku Neko
             </h1>
-            <p className="text-xl sm:text-2xl text-blue-700 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
               แอปจัดการเงินส่วนตัวที่น่ารักที่สุด พร้อมแมวน้อยช่วยดูแลการเงินของคุณ 💕
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 href="/dashboard"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                className="bg-white hover:bg-blue-50 text-blue-600 px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
                 เริ่มใช้งานฟรี 🐾
               </Link>
-              <button className="px-8 py-4 border-2 border-blue-300 text-blue-600 rounded-full text-lg font-semibold hover:bg-blue-50 transition-all duration-300 hover:scale-105">
+              <button className="px-8 py-4 border-2 border-blue-200 text-blue-100 rounded-full text-lg font-semibold hover:bg-blue-500 transition-all duration-300 hover:scale-105">
                 ดูตัวอย่าง 👀
               </button>
             </div>
@@ -41,7 +41,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              ทำไมต้อง <span className="text-blue-600">ฟูกุแมวขาว</span>?
+              ทำไมต้อง <span className="text-blue-600">Fuku Neko</span>?
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
               เพราะเราเข้าใจว่าการจัดการเงินควรจะง่ายและสนุก เหมือนเล่นกับแมวน้อย
@@ -130,8 +130,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Pricing Section - สีชมพูเป็นหลัก */}
-      <div className="py-16 sm:py-20 bg-gradient-to-br from-pink-50 to-pink-100">
+      {/* Pricing Section - สีชมพูล้วน ไม่ผสม */}
+      <div className="py-16 sm:py-20 bg-pink-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-pink-900 mb-4">
@@ -176,9 +176,9 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Pro Plan - สีชมพู (แนะนำ) */}
-            <div className="bg-pink-500 border border-pink-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
-              <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold">
+            {/* Pro Plan - สีชมพูล้วน (แนะนำ) */}
+            <div className="bg-pink-600 border border-pink-700 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+              <div className="absolute top-4 right-4 bg-white text-pink-600 px-3 py-1 rounded-full text-sm font-semibold">
                 แนะนำ
               </div>
               <div className="text-center mb-8">
@@ -191,23 +191,23 @@ export default function Home() {
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center text-white">
-                  <span className="text-yellow-300 mr-3">✓</span>
+                  <span className="text-white mr-3">✓</span>
                   ทุกอย่างในแผนฟรี
                 </li>
                 <li className="flex items-center text-white">
-                  <span className="text-yellow-300 mr-3">✓</span>
+                  <span className="text-white mr-3">✓</span>
                   รายงานแบบละเอียด
                 </li>
                 <li className="flex items-center text-white">
-                  <span className="text-yellow-300 mr-3">✓</span>
+                  <span className="text-white mr-3">✓</span>
                   เป้าหมายไม่จำกัด
                 </li>
                 <li className="flex items-center text-white">
-                  <span className="text-yellow-300 mr-3">✓</span>
+                  <span className="text-white mr-3">✓</span>
                   แจ้งเตือนอัจฉริยะ
                 </li>
                 <li className="flex items-center text-white">
-                  <span className="text-yellow-300 mr-3">✓</span>
+                  <span className="text-white mr-3">✓</span>
                   ส่งออกข้อมูล
                 </li>
               </ul>
@@ -216,8 +216,8 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Premium Plan - สีฟ้า */}
-            <div className="bg-blue-50 border border-blue-200 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
+            {/* Premium Plan - สีฟ้าล้วน */}
+            <div className="bg-blue-100 border border-blue-200 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
               <div className="text-center mb-8">
                 <div className="text-4xl mb-4">👑</div>
                 <h3 className="text-2xl font-bold text-blue-900 mb-2">แมวราชา</h3>
@@ -228,23 +228,23 @@ export default function Home() {
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center text-blue-700">
-                  <span className="text-green-500 mr-3">✓</span>
+                  <span className="text-blue-700 mr-3">✓</span>
                   ทุกอย่างในแผนโปร
                 </li>
                 <li className="flex items-center text-blue-700">
-                  <span className="text-green-500 mr-3">✓</span>
+                  <span className="text-blue-700 mr-3">✓</span>
                   AI วิเคราะห์การเงิน
                 </li>
                 <li className="flex items-center text-blue-700">
-                  <span className="text-green-500 mr-3">✓</span>
+                  <span className="text-blue-700 mr-3">✓</span>
                   คำแนะนำส่วนบุคคล
                 </li>
                 <li className="flex items-center text-blue-700">
-                  <span className="text-green-500 mr-3">✓</span>
+                  <span className="text-blue-700 mr-3">✓</span>
                   สนับสนุนลำดับความสำคัญ
                 </li>
                 <li className="flex items-center text-blue-700">
-                  <span className="text-green-500 mr-3">✓</span>
+                  <span className="text-blue-700 mr-3">✓</span>
                   ปรึกษาผู้เชี่ยวชาญ
                 </li>
               </ul>
@@ -256,7 +256,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* CTA Section - สีฟ้าเป็นหลัก */}
+      {/* CTA Section - สีฟ้าล้วน */}
       <div className="py-16 sm:py-20 bg-blue-600 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 right-10 w-32 h-32 bg-white rounded-full"></div>
@@ -286,7 +286,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer - สีขาวเป็นหลัก */}
+      {/* Footer - สีขาวล้วน */}
       <footer className="bg-white border-t border-gray-200 text-gray-600 py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -324,7 +324,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-200 mt-8 pt-8 text-center">
-            <p>&copy; 2024 ฟูกุแมวขาว. สงวนลิขสิทธิ์ทุกประการ. Made with 💕 for cat lovers</p>
+            <p>&copy; 2024 Fuku Neko. สงวนลิขสิทธิ์ทุกประการ. Made with 💕 for cat lovers</p>
           </div>
         </div>
       </footer>

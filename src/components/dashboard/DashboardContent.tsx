@@ -80,7 +80,7 @@ export function DashboardContent({ userId }: DashboardContentProps) {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">🐱 ฟูกุแมวขาว</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">🐱 Fuku Neko</h1>
               <p className="text-blue-100 mt-1">สวัสดี! มาดูสถานะการเงินของคุณกันเถอะ</p>
             </div>
             <div className="text-right">
