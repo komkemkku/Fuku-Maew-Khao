@@ -21,7 +21,24 @@ export class DatabaseService {
       const user = result.rows[0];
       
       // Create default categories for new user
-      await client.query('SELECT create_default_categories($1)', [user.id]);
+      const defaultCategories = [
+        { name: 'เงินเดือน', type: 'income' },
+        { name: 'รายได้พิเศษ', type: 'income' },
+        { name: 'อาหาร', type: 'expense', budget_amount: 3000 },
+        { name: 'เครื่องดื่ม', type: 'expense', budget_amount: 1000 },
+        { name: 'ค่าเดินทาง', type: 'expense', budget_amount: 2000 },
+        { name: 'ช้อปปิ้ง', type: 'expense', budget_amount: 5000 },
+        { name: 'บิล/ค่าใช้จ่าย', type: 'expense', budget_amount: 3000 },
+        { name: 'สุขภาพ', type: 'expense', budget_amount: 2000 },
+        { name: 'อื่นๆ', type: 'expense', budget_amount: 1000 }
+      ];
+
+      for (const category of defaultCategories) {
+        await client.query(
+          'INSERT INTO public.categories (user_id, name, type, budget_amount) VALUES ($1, $2, $3, $4)',
+          [user.id, category.name, category.type, category.budget_amount || null]
+        );
+      }
       
       return user;
     } finally {
