@@ -128,8 +128,8 @@ export class SecretCommandsService {
       description: 'ดูรายการคำสั่งลับทั้งหมด',
       requiresAuth: false,
       handler: async () => {
-        const commandList = Object.values(this.commands)
-          .map((cmd) => `${cmd.commands[0]} - ${cmd.description}`)
+        const commandList = Object.entries(this.commands)
+          .map(([, cmd]) => `${cmd.commands[0]} - ${cmd.description}`)
           .join('\n');
 
         return [{
@@ -263,8 +263,8 @@ export class SecretCommandsService {
    * เพิ่มคำสั่งลับใหม่
    */
   static addCustomCommand(_key: string, command: SecretCommand): void {
-    // Store command in runtime registry if needed  
-    console.log('Adding custom command:', command.description);
+    // Store command in runtime registry if needed
+    Object.assign(this.commands, { [_key]: command });
   }
 
   /**

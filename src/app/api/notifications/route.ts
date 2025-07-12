@@ -1,116 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DailyNotificationService } from '@/lib/daily-notification';
+
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'Notifications API endpoint',
+    timestamp: new Date().toISOString()
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
-    const userId = searchParams.get('userId');
-    const messageType = searchParams.get('type') as 'morning' | 'evening' | 'weekly';
+    const body = await request.json();
     
-    // ตรวจสอบ API key สำหรับการป้องกัน
-    const apiKey = request.headers.get('x-api-key');
-    if (apiKey !== process.env.CRON_API_KEY && process.env.NODE_ENV === 'production') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    switch (action) {
-      case 'daily':
-        // For Hobby plan: run evening digest only (once per day limit)
-        await DailyNotificationService.sendEveningDigest();
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Daily evening digest sent successfully',
-          time: 'evening',
-          note: 'Hobby plan limitation: once per day only'
-        });
-
-      case 'morning':
-        await DailyNotificationService.sendMorningGreeting();
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Morning greetings sent successfully' 
-        });
-
-      case 'evening':
-        await DailyNotificationService.sendEveningDigest();
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Evening digests sent successfully' 
-        });
-
-      case 'weekly':
-        await DailyNotificationService.sendWeeklyBudgetReminder();
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Weekly budget reminders sent successfully' 
-        });
-
-      case 'test':
-        if (!userId || !messageType) {
-          return NextResponse.json(
-            { error: 'userId and type are required for test' },
-            { status: 400 }
-          );
-        }
-        
-        await DailyNotificationService.sendTestMessage(userId, messageType);
-        return NextResponse.json({ 
-          success: true, 
-          message: `Test ${messageType} message sent to ${userId}` 
-        });
-
-      default:
-        return NextResponse.json(
-          { error: 'Invalid action. Use: morning, evening, weekly, or test' },
-          { status: 400 }
-        );
-    }
-  } catch (error) {
-    console.error('Error in notifications API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: (error as Error).message },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
-
-    if (action === 'status') {
-      return NextResponse.json({
-        status: 'active',
-        services: {
-          morning: 'Available at 08:00 daily',
-          evening: 'Available at 20:00 daily', 
-          weekly: 'Available on Sundays at 18:00'
-        },
-        timezone: 'Asia/Bangkok',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    return NextResponse.json({
-      message: 'Daily Notification Service API',
-      endpoints: {
-        'POST ?action=morning': 'Send morning greetings to all users',
-        'POST ?action=evening': 'Send evening digest to all users',
-        'POST ?action=weekly': 'Send weekly budget reminder to all users',
-        'POST ?action=test&userId=USER_ID&type=TYPE': 'Send test message to specific user',
-        'GET ?action=status': 'Get service status'
-      }
+    // TODO: Implement notification logic
+    console.log('Notification received:', body);
+    
+    return NextResponse.json({ 
+      success: true,
+      message: 'Notification processed'
     });
   } catch (error) {
-    console.error('Error in notifications GET:', error);
+    console.error('Error processing notification:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { success: false, error: 'Invalid request' },
+      { status: 400 }
     );
   }
 }

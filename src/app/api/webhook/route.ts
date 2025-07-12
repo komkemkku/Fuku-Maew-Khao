@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { WebhookRequestBody, validateSignature, Client, Message } from '@line/bot-sdk';
+import { WebhookRequestBody, validateSignature, Client } from '@line/bot-sdk';
 import { LineService } from '@/lib/line-service';
 
 // การตั้งค่าสำหรับเชื่อมต่อกับ LINE
@@ -51,71 +51,23 @@ export async function POST(req: NextRequest) {
         // ประมวลผลแต่ละ event
         for (const event of body.events) {
             try {
-                if (event.type === 'message') {
+                if (event.type === 'message' && event.message.type === 'text') {
                     const userId = event.source.userId;
                     if (!userId) continue;
 
+                    const userMessage = event.message.text;
                     const displayName = event.source.type === 'user'
                         ? await getDisplayName(userId)
                         : undefined;
 
-                    let responseMessages: Message[] = [];
+                    console.log(`User ${userId} sent message: ${userMessage}`);
 
-                    // จัดการตามประเภทข้อความ
-                    switch (event.message.type) {
-                        case 'text':
-                            const userMessage = event.message.text;
-                            console.log(`User ${userId} sent text: ${userMessage}`);
-                            
-                            responseMessages = await LineService.handleMessage(
-                                userMessage,
-                                userId,
-                                displayName
-                            );
-                            break;
-
-                        case 'sticker':
-                            console.log(`User ${userId} sent sticker: ${event.message.packageId}/${event.message.stickerId}`);
-                            
-                            responseMessages = LineService.handleStickerMessage(
-                                event.message.packageId,
-                                event.message.stickerId
-                            );
-                            break;
-
-                        case 'image':
-                            console.log(`User ${userId} sent image`);
-                            responseMessages = LineService.handleMediaMessage('image');
-                            break;
-
-                        case 'audio':
-                            console.log(`User ${userId} sent audio`);
-                            responseMessages = LineService.handleMediaMessage('audio');
-                            break;
-
-                        case 'video':
-                            console.log(`User ${userId} sent video`);
-                            responseMessages = LineService.handleMediaMessage('video');
-                            break;
-
-                        case 'file':
-                            console.log(`User ${userId} sent file`);
-                            responseMessages = LineService.handleMediaMessage('file');
-                            break;
-
-                        case 'location':
-                            console.log(`User ${userId} sent location`);
-                            responseMessages = LineService.handleMediaMessage('location');
-                            break;
-
-                        default:
-                            console.log(`User ${userId} sent unsupported message type: ${(event.message as { type: string }).type}`);
-                            responseMessages = [{
-                                type: 'text',
-                                text: '🤔 ฟูกุยังไม่เข้าใจประเภทข้อความนี้เลย~ ลองพิมพ์ข้อความหรือส่งสติกเกอร์มาแทนได้มั้ยคะ? 😸'
-                            }];
-                            break;
-                    }
+                    // ประมวลผลข้อความและตอบกลับ
+                    const responseMessages = await LineService.handleMessage(
+                        userMessage,
+                        userId,
+                        displayName
+                    );
 
                     console.log('Response messages:', JSON.stringify(responseMessages, null, 2));
 

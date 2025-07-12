@@ -114,37 +114,6 @@ export class DatabaseService {
     }
   }
 
-  static async getAllUsers(): Promise<User[]> {
-    const client = await pool.connect();
-    try {
-      const result = await client.query(
-        'SELECT * FROM public.users ORDER BY created_at DESC'
-      );
-      return result.rows;
-    } finally {
-      client.release();
-    }
-  }
-
-  static async getActiveUsers(daysBack: number = 30): Promise<User[]> {
-    const client = await pool.connect();
-    try {
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - daysBack);
-      
-      const result = await client.query(
-        `SELECT DISTINCT u.* FROM public.users u 
-         LEFT JOIN public.transactions t ON u.id = t.user_id 
-         WHERE u.created_at >= $1 OR t.created_at >= $1
-         ORDER BY u.created_at DESC`,
-        [cutoffDate.toISOString()]
-      );
-      return result.rows;
-    } finally {
-      client.release();
-    }
-  }
-
   // Category Management
   static async getUserCategories(userId: string): Promise<Category[]> {
     const client = await pool.connect();
