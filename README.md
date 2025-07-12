@@ -34,3 +34,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+Env Local
+# LINE Bot Credentials
+LINE_CHANNEL_SECRET="5cdf0acbed0785781f7aa2274084bb99"
+LINE_CHANNEL_ACCESS_TOKEN="zly6dnJR49qQJXxddh/kPtHJTp2g+SsRwpcGSyHkJ2Ik4bSeAXRnW2pgJSgbBXkx3yJKZeWS6RfXSt9zhINcACyGwgxow+88hkDMFdsU0XLPed0Hxa0WqD8A3yKIyX23fwupmZUqn4aX3ghNzNUfJAdB04t89/1O/w1cDnyilFU="
+
+# Database Credentials
+DATABASE_URL="postgresql://postgres:062191Komkem@db.lammmeiltbozgvzjyajw.supabase.co:5432/postgres"
+
+# Fuku-Maew-Khao
