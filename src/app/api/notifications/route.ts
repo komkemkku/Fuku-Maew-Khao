@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-    
 
     switch (action) {
       case 'daily':
