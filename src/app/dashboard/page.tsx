@@ -206,7 +206,7 @@ export default function DashboardPage() {
           </button>
         </div>
       </div>
-        {/* Main Content Area */}
+        
 
       {/* Header with Mobile Navigation */}
       <header className="bg-white shadow-sm border-b border-gray-200">
