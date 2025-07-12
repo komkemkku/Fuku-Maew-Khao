@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Client, WebhookRequestBody, validateSignature } from '@line/bot-sdk';
+import { WebhookRequestBody, validateSignature } from '@line/bot-sdk';
 
 // การตั้งค่าสำหรับเชื่อมต่อกับ LINE
 const lineConfig = {
@@ -7,9 +7,9 @@ const lineConfig = {
     channelSecret: process.env.LINE_CHANNEL_SECRET || '',
 };
 
-// สร้าง client สำหรับสื่อสารกับ LINE
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const client = new Client(lineConfig);
+// เรายังไม่ได้ใช้ client ในตอนนี้ จึงคอมเมนต์ออกไปก่อนเพื่อแก้ปัญหาตอน build
+// import { Client } from '@line/bot-sdk';
+// const client = new Client(lineConfig);
 
 // ฟังก์ชันหลักสำหรับรับ Request จาก LINE
 export async function POST(req: NextRequest) {
@@ -26,10 +26,6 @@ export async function POST(req: NextRequest) {
         console.log('✅ Signature validated');
         console.log('Received events:', JSON.stringify(body.events, null, 2));
 
-        // ใน Phase 1 เราจะแค่ log event ที่ได้รับมาดูก่อน
-        // Phase 2 เราจะมาเขียน logic จัดการ event ตรงนี้
-        // เช่น การบันทึกข้อมูลลง database, การตอบกลับผู้ใช้
-
         // ตัวอย่างการวนลูปดู event แต่ละอัน
         for (const event of body.events) {
             if (event.type === 'message' && event.message.type === 'text') {
@@ -38,7 +34,7 @@ export async function POST(req: NextRequest) {
                 console.log(`User ${userId} sent message: ${userMessage}`);
 
                 // TODO: Phase 2 - Parse message and save to DB
-                // TODO: Phase 2 - Reply to user
+                // TODO: Phase 2 - Reply to user (เราจะกลับมาใช้ client ตรงนี้)
             }
         }
 
