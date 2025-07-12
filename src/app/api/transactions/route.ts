@@ -1,0 +1,75 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { DatabaseService } from '@/lib/database';
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : undefined;
+    const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // For demo purposes, we'll use a mock user ID if the provided one is "demo_user_123"
+    let actualUserId = userId;
+    if (userId === 'demo_user_123') {
+      // Create or get demo user
+      const demoUser = await DatabaseService.createUser('demo_user_123', 'Demo User');
+      actualUserId = demoUser.id;
+    }
+
+    const transactions = await DatabaseService.getUserTransactions(actualUserId, startDate, endDate, limit);
+
+    return NextResponse.json(transactions);
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { userId, amount, description, categoryId, transactionDate } = body;
+
+    if (!userId || amount === undefined) {
+      return NextResponse.json(
+        { error: 'User ID and amount are required' },
+        { status: 400 }
+      );
+    }
+
+    // For demo purposes, we'll use a mock user ID if the provided one is "demo_user_123"
+    let actualUserId = userId;
+    if (userId === 'demo_user_123') {
+      // Create or get demo user
+      const demoUser = await DatabaseService.createUser('demo_user_123', 'Demo User');
+      actualUserId = demoUser.id;
+    }
+
+    const transaction = await DatabaseService.createTransaction(
+      actualUserId,
+      amount,
+      description,
+      categoryId,
+      transactionDate ? new Date(transactionDate) : undefined
+    );
+
+    return NextResponse.json(transaction, { status: 201 });
+  } catch (error) {
+    console.error('Error creating transaction:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

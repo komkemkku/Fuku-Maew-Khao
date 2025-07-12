@@ -6,11 +6,18 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test-line-bot": "node test-line-bot.js",
+    "setup-line": "./setup-line-bot.sh",
+    "test-webhook": "./test-webhook.sh",
+    "test-production": "./test-production.sh",
+    "deploy": "vercel --prod",
+    "deploy-dev": "vercel"
   },
   "dependencies": {
     "@line/bot-sdk": "^10.0.0",
     "next": "15.3.5",
+    "node-fetch": "^3.3.2",
     "pg": "^8.16.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -19,6 +26,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.15.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

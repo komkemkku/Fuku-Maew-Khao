@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { WebhookRequestBody, validateSignature } from '@line/bot-sdk';
+import { WebhookRequestBody, validateSignature, Client } from '@line/bot-sdk';
+import { LineService } from '@/lib/line-service';
 
 // การตั้งค่าสำหรับเชื่อมต่อกับ LINE
 const lineConfig = {
@@ -7,9 +8,18 @@ const lineConfig = {
     channelSecret: process.env.LINE_CHANNEL_SECRET || '',
 };
 
-// เรายังไม่ได้ใช้ client ในตอนนี้ จึงคอมเมนต์ออกไปก่อนเพื่อแก้ปัญหาตอน build
-// import { Client } from '@line/bot-sdk';
-// const client = new Client(lineConfig);
+const client = new Client(lineConfig);
+
+// ฟังก์ชันสำหรับดึงชื่อผู้ใช้จาก LINE
+async function getDisplayName(userId: string): Promise<string | undefined> {
+    try {
+        const profile = await client.getProfile(userId);
+        return profile.displayName;
+    } catch (error) {
+        console.error('Error getting user profile:', error);
+        return undefined;
+    }
+}
 
 // ฟังก์ชันหลักสำหรับรับ Request จาก LINE
 export async function POST(req: NextRequest) {
@@ -26,15 +36,43 @@ export async function POST(req: NextRequest) {
         console.log('✅ Signature validated');
         console.log('Received events:', JSON.stringify(body.events, null, 2));
 
-        // ตัวอย่างการวนลูปดู event แต่ละอัน
+        // ประมวลผลแต่ละ event
         for (const event of body.events) {
-            if (event.type === 'message' && event.message.type === 'text') {
-                const userId = event.source.userId;
-                const userMessage = event.message.text;
-                console.log(`User ${userId} sent message: ${userMessage}`);
+            try {
+                if (event.type === 'message' && event.message.type === 'text') {
+                    const userId = event.source.userId;
+                    if (!userId) continue;
+                    
+                    const userMessage = event.message.text;
+                    const displayName = event.source.type === 'user' 
+                        ? await getDisplayName(userId) 
+                        : undefined;
 
-                // TODO: Phase 2 - Parse message and save to DB
-                // TODO: Phase 2 - Reply to user (เราจะกลับมาใช้ client ตรงนี้)
+                    console.log(`User ${userId} sent message: ${userMessage}`);
+
+                    // ประมวลผลข้อความและตอบกลับ
+                    const responseMessages = await LineService.handleMessage(
+                        userMessage, 
+                        userId, 
+                        displayName
+                    );
+
+                    // ตอบกลับผู้ใช้
+                    if (event.replyToken) {
+                        await LineService.replyMessage(event.replyToken, responseMessages);
+                    }
+                }
+                else if (event.type === 'follow') {
+                    // เมื่อมีคนแอดเพื่อน
+                    const userId = event.source.userId;
+                    if (userId) {
+                        const displayName = await getDisplayName(userId);
+                        await LineService.handleMessage('ช่วยเหลือ', userId, displayName);
+                    }
+                }
+            } catch (eventError) {
+                console.error('Error processing event:', event, eventError);
+                // ดำเนินการต่อกับ event ถัดไปแม้จะเกิดข้อผิดพลาด
             }
         }
 
