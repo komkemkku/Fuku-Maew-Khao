@@ -2,6 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { AuthService } from '@/lib/auth';
+
+interface User {
+  id: string;
+  lineUserId: string;
+  name: string;
+  email?: string;
+}
 
 interface Category {
   id: string;
@@ -9,8 +17,10 @@ interface Category {
   description?: string;
   color: string;
   icon: string;
+  type: 'income' | 'expense';
+  budget_amount?: number;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 interface CategoryFormData {
@@ -18,6 +28,8 @@ interface CategoryFormData {
   description: string;
   color: string;
   icon: string;
+  type: 'income' | 'expense';
+  budget_amount: string;
 }
 
 const AVAILABLE_COLORS = [
@@ -44,18 +56,33 @@ export default function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const [formData, setFormData] = useState<CategoryFormData>({
     name: '',
     description: '',
     color: 'blue',
-    icon: '📂'
+    icon: '📂',
+    type: 'expense',
+    budget_amount: ''
   });
 
+  // Get current user
+  useEffect(() => {
+    async function initUser() {
+      const user = await AuthService.getCurrentUser();
+      setCurrentUser(user);
+    }
+    initUser();
+  }, []);
+
   const fetchCategories = useCallback(async () => {
+    if (!currentUser?.id) return;
+    
     try {
       setLoading(true);
       const params = new URLSearchParams();
+      params.append('userId', currentUser.id);
       if (searchTerm) params.append('search', searchTerm);
       if (selectedColor) params.append('color', selectedColor);
 
@@ -69,7 +96,7 @@ export default function CategoriesPage() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, selectedColor]);
+  }, [currentUser?.id, searchTerm, selectedColor]);
 
   useEffect(() => {
     fetchCategories();
@@ -77,13 +104,17 @@ export default function CategoriesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser?.id) return;
     
     try {
       const data: Record<string, unknown> = {
+        userId: currentUser.id,
         name: formData.name,
         description: formData.description || null,
         color: formData.color,
-        icon: formData.icon
+        icon: formData.icon,
+        type: formData.type,
+        budget_amount: formData.budget_amount ? parseFloat(formData.budget_amount) : undefined
       };
 
       const url = '/api/categories';
@@ -105,7 +136,7 @@ export default function CategoriesPage() {
         await fetchCategories();
         setShowModal(false);
         setEditingCategory(null);
-        setFormData({ name: '', description: '', color: 'blue', icon: '📂' });
+        setFormData({ name: '', description: '', color: 'blue', icon: '📂', type: 'expense', budget_amount: '' });
       }
     } catch (error) {
       console.error('Error saving category:', error);
@@ -118,7 +149,9 @@ export default function CategoriesPage() {
       name: category.name,
       description: category.description || '',
       color: category.color,
-      icon: category.icon
+      icon: category.icon,
+      type: category.type,
+      budget_amount: category.budget_amount?.toString() || ''
     });
     setShowModal(true);
   };
@@ -173,7 +206,7 @@ export default function CategoriesPage() {
             <button
               onClick={() => {
                 setEditingCategory(null);
-                setFormData({ name: '', description: '', color: 'blue', icon: '📂' });
+                setFormData({ name: '', description: '', color: 'blue', icon: '📂', type: 'expense', budget_amount: '' });
                 setShowModal(true);
               }}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
