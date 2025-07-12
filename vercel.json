@@ -1,22 +1,18 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
+  "outputDirectory": ".next", 
   "framework": "nextjs",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "regions": ["sin1"],
   "crons": [
     {
-      "path": "/api/notifications?action=morning",
-      "schedule": "0 8 * * *"
+      "path": "/api/notifications?action=daily",
+      "schedule": "0 0,13 * * *"
     },
     {
-      "path": "/api/notifications?action=evening", 
-      "schedule": "0 20 * * *"
-    },
-    {
-      "path": "/api/notifications?action=weekly",
-      "schedule": "0 18 * * 0"
+      "path": "/api/notifications?action=weekly", 
+      "schedule": "0 2 * * 0"
     }
   ],
   "functions": {
@@ -24,7 +20,7 @@
       "maxDuration": 30
     },
     "src/app/api/notifications/route.ts": {
-      "maxDuration": 300
+      "maxDuration": 60
     }
   },
   "headers": [
@@ -36,14 +32,20 @@
           "value": "*"
         },
         {
-          "key": "Access-Control-Allow-Methods", 
+          "key": "Access-Control-Allow-Methods",
           "value": "GET, POST, PUT, DELETE, OPTIONS"
         },
         {
-          "key": "Access-Control-Allow-Headers",
+          "key": "Access-Control-Allow-Headers", 
           "value": "Content-Type, Authorization, x-line-signature, x-api-key"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/health",
+      "destination": "/api/notifications?action=status"
     }
   ]
 }
