@@ -1,52 +1,127 @@
-# 🐱 ฟูกุแมวขาว - Personal Finance Manager
+# Fukuneko App 🐱💰
 
-แอปจัดการเงินส่วนตัวที่น่ารักที่สุด พร้อมแมวน้อยช่วยดูแลการเงินของคุณผ่าน LINE Bot และ Web Dashboard ที่สวยงาม
+ระบบบอท LINE สำหรับการจัดการการเงินส่วนบุคคลแบบอัจฉริยะ พร้อมระบบคำสั่งลับ การแจ้งเตือนอัตโนมัติ และการตอบกลับสติกเกอร์
 
-## 🚀 เริ่มต้นใช้งาน
+## ✨ Features
 
-### 1. ติดตั้งและรันแอป
+### 🔐 Secret Commands System
+- คำสั่งลับสำหรับนักพัฒนาและการทดสอบ
+- ระบบการยืนยันตัวตนด้วย DEV_ACCESS_KEY
+- คำสั่งต่างๆ เช่น DEMO_DATA, CLEAR_DATA, SYSTEM_STATUS
+
+### � Daily Notifications
+- การแจ้งเตือนอัตโนมัติตอนเช้า พร้อมคำทำนาย
+- สรุปข้อมูลการเงินตอนเย็น
+- การแจ้งเตือนงบประมาณรายสัปดาห์
+
+### 🎨 Sticker Response System  
+- ตอบกลับสติกเกอร์อัตโนมัติด้วยข้อความสร้างสรรค์
+- วิเคราะห์อารมณ์จากสติกเกอร์ 8 ประเภท
+- การตอบกลับพิเศษแบบสุ่ม
+
+### 💰 Financial Management
+- บันทึกรายรับรายจ่าย
+- การจัดการหมวดหมู่
+- ระบบงบประมาณ
+- รายงานทางการเงิน
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL Database
+- LINE Bot Account
+- Vercel Account (for deployment)
+
+### Installation
+
 ```bash
-# ติดตั้ง dependencies
+# Clone repository
+git clone <repository-url>
+cd fukuneko-app
+
+# Install dependencies
 npm install
 
-# รันแอป
+# Setup environment variables
+cp .env.example .env
+# Edit .env file with your configuration
+
+# Check system health
+npm run health
+
+# Run development server
 npm run dev
 ```
 
-### 2. ตั้งค่า LINE Bot (Development)
-```bash
-# ทดสอบ webhook ก่อน
-npm run test-webhook
+### Environment Configuration
 
-# ตั้งค่า ngrok และ LINE Bot
-npm run setup-line
+สร้างไฟล์ `.env` และกรอกข้อมูลต่อไปนี้:
+
+```env
+# LINE Bot Configuration
+LINE_CHANNEL_SECRET=your_channel_secret_32_chars
+LINE_CHANNEL_ACCESS_TOKEN=your_long_access_token
+
+# Database Configuration  
+DATABASE_URL=postgresql://user:password@host:port/database
+
+# Security Keys
+MIGRATION_SECRET=your_migration_secret
+DEV_ACCESS_KEY=your_dev_access_key
+CRON_API_KEY=your_cron_api_key
+
+# Optional LIFF Configuration
+NEXT_PUBLIC_LIFF_ID=your_liff_id
+
+# Development Configuration
+DEV_LINE_USER_ID=your_line_user_id_for_testing
+
+# Feature Toggles (optional)
+ENABLE_DAILY_NOTIFICATIONS=true
+ENABLE_STICKER_RESPONSE=true
+ENABLE_FORTUNE_SERVICE=true
+
+# Notification Timing (optional)
+MORNING_NOTIFICATION_TIME=07:00
+EVENING_NOTIFICATION_TIME=20:00
+WEEKLY_NOTIFICATION_DAY=sunday
+WEEKLY_NOTIFICATION_TIME=09:00
+
+# Response Behavior (optional)
+SPECIAL_RESPONSE_CHANCE=0.15
+STICKER_REPLY_CHANCE=0.7
+LOG_LEVEL=info
 ```
 
-### 3. Deploy บน Vercel (Production)
+## 🔧 Development Scripts
+
 ```bash
-# Build และ deploy
-npm run build
-npm run deploy
+# System Health Checks
+npm run health              # ตรวจสอบระบบทั้งหมด
+npm run health:env         # ตรวจสอบ environment variables
+npm run health:db          # ตรวจสอบฐานข้อมูล
+npm run health:line        # ตรวจสอบ LINE Bot
 
-# ทดสอบ production
-npm run test-production https://your-app.vercel.app
+# Testing Features
+npm run test:notifications  # ทดสอบระบบแจ้งเตือน
+npm run test:stickers      # ทดสอบระบบตอบกลับสติกเกอร์
+npm run test:secrets       # ทดสอบคำสั่งลับ
+
+# Database Management
+npm run db:migrate         # รัน database migrations
+npm run db:seed           # เพิ่มข้อมูลตัวอย่าง
+npm run db:reset          # รีเซ็ตฐานข้อมูล
+
+# Development
+npm run dev               # รันเซิร์ฟเวอร์พัฒนา
+npm run build             # สร้าง production build
+npm run start             # รันเซิร์ฟเวอร์ production
+
+# Deployment Checks
+npm run deploy:check      # ตรวจสอบก่อน deploy
+npm run production:ready  # ตรวจสอบความพร้อมสำหรับ production
 ```
-
-### 4. เปิดใช้งาน
-- 🌐 **Web Dashboard**: 
-  - Development: http://localhost:3002
-  - Production: https://your-app.vercel.app
-- 🤖 **LINE Bot**: สแกน QR Code จาก LINE Developers Console
-
-## ✨ คุณสมบัติหลัก
-
-### 🆓 ฟีเจอร์ฟรี (Free Tier)
-- 📝 บันทึกรายรับ-จ่ายไม่จำกัดผ่าน LINE Bot
-- 🌐 Web Dashboard ส่วนตัว
-- 📊 สรุปภาพรวมพื้นฐาน
-- 📂 จัดการหมวดหมู่
-- 🎯 ตั้งงบประมาณ
-- 🚀 ลงทะเบียนอัตโนมัติผ่าน LINE
 
 ### 💎 ฟีเจอร์พรีเมียม (Premium Tier)
 - 📷 อ่านสลิปอัตโนมัติ (OCR)
@@ -188,38 +263,198 @@ fukuneko-app/
 - GET: ดึงรายการธุรกรรมของผู้ใช้
 - POST: สร้างรายการธุรกรรมใหม่
 
+## 🎯 Usage Examples
+
+### Secret Commands
+```
+ผู้ใช้: /secret DEMO_DATA your_dev_access_key
+บอท: ✅ Demo data has been added to your account
+```
+
+### Daily Notifications
+การแจ้งเตือนจะส่งอัตโนมัติตามเวลาที่กำหนด:
+- เช้า 07:00 - คำทำนายและคำแนะนำ
+- เย็น 20:00 - สรุปรายวัน
+- อาทิตย์ 09:00 - สรุปงบประมาณรายสัปดาห์
+
+### Sticker Responses
+บอทจะตอบกลับสติกเกอร์อัตโนมัติด้วยข้อความที่เหมาะสม:
+- สติกเกอร์เศร้า → ข้อความให้กำลังใจ
+- สติกเกอร์รัก → ข้อความหวานๆ
+- สติกเกอร์งาน → คำแนะนำการทำงาน
+
 ## 🚀 Deployment
 
 ### Vercel Deployment
-1. Connect GitHub repository ไปยัง Vercel
-2. ตั้งค่า Environment Variables ใน Vercel Dashboard
-3. Deploy อัตโนมัติทุกครั้งที่ push code
 
-### LINE Bot Setup
-1. สร้าง LINE Messaging API Channel ใน [LINE Developers Console](https://developers.line.biz/)
-2. ตั้งค่า Webhook URL เป็น `https://your-domain.vercel.app/api/webhook`
-3. เปิดใช้งาน Webhook และ Reply messages
+1. **Push to GitHub**
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push origin main
+   ```
 
-## 🤝 การมีส่วนร่วม
+2. **Deploy to Vercel**
+   ```bash
+   # Install Vercel CLI
+   npm i -g vercel
+   
+   # Deploy
+   vercel --prod
+   ```
 
-1. Fork repository
-2. สร้าง feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit การเปลี่ยนแปลง (`git commit -m 'Add some AmazingFeature'`)
-4. Push ไปยัง branch (`git push origin feature/AmazingFeature`)
-5. สร้าง Pull Request
+3. **Configure Environment Variables**
+   - ไปที่ Vercel Dashboard
+   - เพิ่ม environment variables ทั้งหมด
+   - Redeploy project
 
-## 📞 ติดต่อ
+4. **Setup LINE Webhook**
+   - URL: `https://your-app.vercel.app/api/webhook`
+   - ตั้งค่าใน LINE Developers Console
 
-- GitHub: [@komkemkku](https://github.com/komkemkku)
-- Repository: [Fuku-Maew-Khao](https://github.com/komkemkku/Fuku-Maew-Khao)
+### Health Monitoring
+
+หลังจาก deploy แล้ว ให้ตรวจสอบระบบ:
+
+```bash
+# ตรวจสอบระบบทั้งหมด
+npm run health
+
+# หรือตรวจสอบแต่ละส่วน
+npm run health:env
+npm run health:db  
+npm run health:line
+```
+
+## 📚 Project Structure
+
+```
+fukuneko-app/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── webhook/route.ts     # LINE webhook handler
+│   │   │   └── notifications/route.ts # Cron job endpoint
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   └── lib/
+│       ├── secret-commands.ts       # Secret commands system
+│       ├── daily-notification.ts    # Daily notifications
+│       ├── sticker-response.ts      # Sticker response system
+│       ├── database.ts             # Database service
+│       └── fortune.ts              # Fortune service
+├── scripts/
+│   ├── check-env.js               # Environment checker
+│   ├── check-db.js                # Database checker
+│   ├── check-line.js              # LINE Bot checker
+│   └── health-check.js            # Complete health monitor
+├── docs/
+│   └── SETUP.md                   # Setup documentation
+├── vercel.json                    # Vercel configuration
+└── package.json                   # Dependencies and scripts
+```
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Failed**
+   ```bash
+   npm run health:db
+   # ตรวจสอบ DATABASE_URL format
+   # ตรวจสอบ network connectivity
+   ```
+
+2. **LINE Bot Not Responding**
+   ```bash
+   npm run health:line
+   # ตรวจสอบ webhook URL
+   # ตรวจสอบ channel access token
+   ```
+
+3. **Environment Variables Missing**
+   ```bash
+   npm run health:env
+   # ตรวจสอบไฟล์ .env
+   # ตรวจสอบ required variables
+   ```
+
+### Debug Mode
+
+เพิ่ม environment variable สำหรับ debug:
+```env
+LOG_LEVEL=debug
+```
+
+## 🎨 Customization
+
+### เพิ่มคำสั่งลับใหม่
+
+แก้ไขไฟล์ `src/lib/secret-commands.ts`:
+
+```typescript
+const commands = {
+  // ...existing commands...
+  NEW_COMMAND: {
+    description: 'Description of new command',
+    handler: async (userId: string, args: string[]) => {
+      // Implementation
+      return 'Response message';
+    }
+  }
+};
+```
+
+### ปรับการตอบกลับสติกเกอร์
+
+แก้ไขไฟล์ `src/lib/sticker-response.ts`:
+
+```typescript
+const emotionResponses = {
+  // เพิ่มอารมณ์ใหม่หรือปรับข้อความ
+  newEmotion: [
+    'ข้อความตอบกลับ 1',
+    'ข้อความตอบกลับ 2'
+  ]
+};
+```
+
+## 📈 Monitoring & Analytics
+
+### Cron Jobs Status
+- Morning notifications: ทุกวัน 07:00 (GMT+7)
+- Evening digest: ทุกวัน 20:00 (GMT+7)  
+- Weekly budget: อาทิตย์ 09:00 (GMT+7)
+
+### Performance Monitoring
+- Database response times
+- LINE API rate limits
+- Webhook response times
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
 ## 📄 License
 
-MIT License - ดูรายละเอียดใน [LICENSE](LICENSE) file
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+หากมีปัญหาหรือข้อสงสัย:
+
+1. ตรวจสอบ [docs/SETUP.md](docs/SETUP.md)
+2. รัน `npm run health` เพื่อดูสถานะระบบ
+3. ตรวจสอบ logs ใน Vercel Dashboard
+4. เปิด GitHub Issue
 
 ---
 
-🐱 **ฟูกุแมวขาว** - ผู้ช่วยการเงินส่วนตัวที่ทำให้ชีวิตง่ายขึ้น
+🎉 **ขอให้สนุกกับการใช้งาน Fukuneko App!** 🐱💰
 
 Env Local
 # LINE Bot Credentials

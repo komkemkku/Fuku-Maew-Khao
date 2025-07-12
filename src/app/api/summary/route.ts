@@ -15,15 +15,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // For demo purposes, we'll use a mock user ID if the provided one is "demo_user_123"
-    let actualUserId = userId;
-    if (userId === 'demo_user_123') {
-      // Create or get demo user
-      const demoUser = await DatabaseService.createUser('demo_user_123', 'Demo User');
-      actualUserId = demoUser.id;
-    }
-
-    const summary = await DatabaseService.getMonthlySummary(actualUserId, year, month);
+    const summary = await DatabaseService.getMonthlySummary(userId, year, month);
 
     return NextResponse.json(summary);
   } catch (error) {

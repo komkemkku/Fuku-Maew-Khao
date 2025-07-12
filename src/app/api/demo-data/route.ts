@@ -40,7 +40,15 @@ const generateDemoData = () => {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId } = body;
+    const { userId, devKey } = body;
+
+    // Check for dev access key
+    if (devKey !== process.env.DEV_ACCESS_KEY) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Dev access required' },
+        { status: 403 }
+      );
+    }
 
     if (!userId) {
       return NextResponse.json(
@@ -48,6 +56,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Clear existing transactions first
+    await DatabaseService.clearUserTransactions(userId);
 
     // Create or get user
     const user = await DatabaseService.createUser(userId, `Demo User ${userId.slice(-3)}`);

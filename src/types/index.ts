@@ -3,7 +3,21 @@ export interface User {
   line_user_id: string;
   display_name?: string;
   subscription_plan: 'free' | 'premium';
+  subscription_start_date?: Date;
+  subscription_end_date?: Date;
   created_at: Date;
+}
+
+export interface SubscriptionFeatures {
+  receiptOCR: boolean;
+  advancedReports: boolean;
+  smartNotifications: boolean;
+  noAds: boolean;
+  categoryLimit: number;
+  transactionLimit: number;
+  budgetAlerts: boolean;
+  exportData: boolean;
+  prioritySupport: boolean;
 }
 
 export interface Category {

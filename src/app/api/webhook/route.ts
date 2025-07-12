@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { WebhookRequestBody, validateSignature, Client } from '@line/bot-sdk';
+import { WebhookRequestBody, validateSignature, Client, Message } from '@line/bot-sdk';
 import { LineService } from '@/lib/line-service';
 
 // การตั้งค่าสำหรับเชื่อมต่อกับ LINE
@@ -26,10 +26,10 @@ export async function POST(req: NextRequest) {
     try {
         console.log('📨 Webhook received');
         console.log('Headers:', Object.fromEntries(req.headers.entries()));
-        
+
         const bodyText = await req.text();
         console.log('Raw body:', bodyText);
-        
+
         const body: WebhookRequestBody = JSON.parse(bodyText);
         const signature = req.headers.get('x-line-signature') || '';
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         // ตรวจสอบลายเซ็นเพื่อให้แน่ใจว่า Request มาจาก LINE จริงๆ
         const isValidSignature = validateSignature(bodyText, lineConfig.channelSecret, signature);
         console.log('Signature validation result:', isValidSignature);
-        
+
         if (!isValidSignature) {
             console.error('Invalid signature');
             return new NextResponse('Invalid signature', { status: 401 });
@@ -51,23 +51,71 @@ export async function POST(req: NextRequest) {
         // ประมวลผลแต่ละ event
         for (const event of body.events) {
             try {
-                if (event.type === 'message' && event.message.type === 'text') {
+                if (event.type === 'message') {
                     const userId = event.source.userId;
                     if (!userId) continue;
-                    
-                    const userMessage = event.message.text;
-                    const displayName = event.source.type === 'user' 
-                        ? await getDisplayName(userId) 
+
+                    const displayName = event.source.type === 'user'
+                        ? await getDisplayName(userId)
                         : undefined;
 
-                    console.log(`User ${userId} sent message: ${userMessage}`);
+                    let responseMessages: Message[] = [];
 
-                    // ประมวลผลข้อความและตอบกลับ
-                    const responseMessages = await LineService.handleMessage(
-                        userMessage, 
-                        userId, 
-                        displayName
-                    );
+                    // จัดการตามประเภทข้อความ
+                    switch (event.message.type) {
+                        case 'text':
+                            const userMessage = event.message.text;
+                            console.log(`User ${userId} sent text: ${userMessage}`);
+                            
+                            responseMessages = await LineService.handleMessage(
+                                userMessage,
+                                userId,
+                                displayName
+                            );
+                            break;
+
+                        case 'sticker':
+                            console.log(`User ${userId} sent sticker: ${event.message.packageId}/${event.message.stickerId}`);
+                            
+                            responseMessages = LineService.handleStickerMessage(
+                                event.message.packageId,
+                                event.message.stickerId
+                            );
+                            break;
+
+                        case 'image':
+                            console.log(`User ${userId} sent image`);
+                            responseMessages = LineService.handleMediaMessage('image');
+                            break;
+
+                        case 'audio':
+                            console.log(`User ${userId} sent audio`);
+                            responseMessages = LineService.handleMediaMessage('audio');
+                            break;
+
+                        case 'video':
+                            console.log(`User ${userId} sent video`);
+                            responseMessages = LineService.handleMediaMessage('video');
+                            break;
+
+                        case 'file':
+                            console.log(`User ${userId} sent file`);
+                            responseMessages = LineService.handleMediaMessage('file');
+                            break;
+
+                        case 'location':
+                            console.log(`User ${userId} sent location`);
+                            responseMessages = LineService.handleMediaMessage('location');
+                            break;
+
+                        default:
+                            console.log(`User ${userId} sent unsupported message type: ${(event.message as { type: string }).type}`);
+                            responseMessages = [{
+                                type: 'text',
+                                text: '🤔 ฟูกุยังไม่เข้าใจประเภทข้อความนี้เลย~ ลองพิมพ์ข้อความหรือส่งสติกเกอร์มาแทนได้มั้ยคะ? 😸'
+                            }];
+                            break;
+                    }
 
                     console.log('Response messages:', JSON.stringify(responseMessages, null, 2));
 
@@ -85,7 +133,29 @@ export async function POST(req: NextRequest) {
                     const userId = event.source.userId;
                     if (userId) {
                         const displayName = await getDisplayName(userId);
-                        await LineService.handleMessage('ช่วยเหลือ', userId, displayName);
+                        // ส่งข้อความทักทายสุดน่ารักและสร้างสรรค์
+                        const greetings = [
+                            `🌟 เหมียว~ สวัสดีจ้า${displayName ? ' คุณ' + displayName : ''}! ยินดีต้อนรับสู่โลกน่ารักของฟูกุนะคะ 😸\n\n` +
+                            `💫 ฟูกุจะเป็นผู้ช่วยการเงินส่วนตัวของเจ้าทาส และคอยดูแลกระเป๋าเงินให้เรียบร้อยเสมอ~\n\n` +
+                            `🎪 ลองพิมพ์ 'ช่วยเหลือ' เพื่อดูเวทมนตร์ที่ฟูกุทำได้ หรือ 'แมวฟรี' เพื่อรับของขวัญแมวน่ารักฟรี! 🐾\n\n` +
+                            `💎 ถ้าเจ้าทาสอยากสนับสนุนฟูกุ สามารถอัปเกรดเป็น Premium เพื่อปลดล็อคความมหัศจรรย์เพิ่มเติมได้นะ! ✨`,
+                            
+                            `🐾 ยินดีที่ได้รู้จักนะคะ${displayName ? ' คุณ' + displayName : ''}! 💕\n\n` +
+                            `🌸 ฟูกุพร้อมเป็นทั้งผู้ช่วยการเงินและเพื่อนคุยสุดน่ารักของเจ้าทาสแล้วค่ะ~\n\n` +
+                            `🎭 มาลองเล่นกันเถอะ! พิมพ์ '50 ค่ากาแฟ' หรือ 'สรุป' ดูสิ ฟูกุจะโชว์ความเก่งให้ดู! ✨\n` +
+                            `📚 อยากรู้ทุกความลับของฟูกุไหม? พิมพ์ 'ช่วยเหลือ' มาค่ะ!\n\n` +
+                            `💝 เจ้าทาสสามารถสนับสนุนฟูกุด้วยการอัปเกรด Premium เพื่อปลดล็อคฟีเจอร์พิเศษได้นะ! 😸`,
+                            
+                            `✨ ขอบคุณมากๆ ที่ให้ฟูกุได้เป็นเพื่อนนะคะ! 🥰\n\n` +
+                            `🌈 ขอให้ทุกวันของเจ้าทาสเต็มไปด้วยรอยยิ้ม ความสุข และเงินทองไหลมาเทมา! เหมียว~ 💰\n\n` +
+                            `🎁 อยากได้ของขวัญแมวน่ารักฟรีไหม? พิมพ์ 'แมวฟรี' เลย! 😻\n` +
+                            `🔮 หรือจะขอคำทำนายมงคลก็ได้นะ~ พิมพ์ 'ช่วยเหลือ' เพื่อดูเมนูความมหัศจรรย์ทั้งหมด!\n\n` +
+                            `💜 ถ้าเจ้าทาสอยากให้ฟูกุมีความสามารถเพิ่มขึ้น การอัปเกรด Premium จะช่วยให้ฟูกุแข็งแกร่งขึ้นได้นะ! 🌟`
+                        ];
+                        const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+                        await LineService.replyMessage(event.replyToken, [
+                            { type: 'text', text: greeting }
+                        ]);
                     }
                 }
             } catch (eventError) {
@@ -105,8 +175,8 @@ export async function POST(req: NextRequest) {
 
 // เพิ่ม GET method สำหรับทดสอบ webhook
 export async function GET() {
-    return NextResponse.json({ 
-        status: 'ok', 
+    return NextResponse.json({
+        status: 'ok',
         message: 'Webhook is working',
         config: {
             hasAccessToken: !!process.env.LINE_CHANNEL_ACCESS_TOKEN,
