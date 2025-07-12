@@ -9,12 +9,28 @@ const lineConfig = {
   channelSecret: process.env.LINE_CHANNEL_SECRET!,
 };
 
+// Debug: ตรวจสอบการตั้งค่า
+console.log('LINE Config initialized:', {
+  hasAccessToken: !!lineConfig.channelAccessToken,
+  hasSecret: !!lineConfig.channelSecret,
+  accessTokenLength: lineConfig.channelAccessToken?.length || 0,
+  secretLength: lineConfig.channelSecret?.length || 0
+});
+
 const client = new Client(lineConfig);
 
 export class LineService {
   static async handleMessage(userMessage: string, userId: string, displayName?: string) {
-    // สร้างหรืออัปเดตผู้ใช้ในฐานข้อมูล
-    const user = await DatabaseService.createUser(userId, displayName);
+    let user;
+    
+    try {
+      // สร้างหรืออัปเดตผู้ใช้ในฐานข้อมูล
+      user = await DatabaseService.createUser(userId, displayName);
+    } catch (dbError) {
+      console.error('Database connection failed, using fallback mode:', dbError);
+      // ใช้ fallback user สำหรับกรณีฐานข้อมูลเชื่อมต่อไม่ได้
+      user = { id: userId, line_user_id: userId, display_name: displayName };
+    }
     
     // ประมวลผลข้อความ
     const response = await this.processUserMessage(userMessage, user.id);
@@ -58,36 +74,34 @@ export class LineService {
     // คำสั่งความช่วยเหลือ
     if (text === 'help' || text === 'ช่วยเหลือ' || text === 'วิธีใช้') {
       return this.getHelpMessage();
-    }
+    }      // ลองแปลงเป็นรายการรับ-จ่าย
+      const transaction = this.parseTransactionMessage(message);
+      if (transaction) {
+        try {
+          // ค้นหาหมวดหมู่ที่เหมาะสม
+          const categories = await DatabaseService.getUserCategories(userId);
+          const category = this.findBestCategory(transaction.description || '', categories);
 
-    // ลองแปลงเป็นรายการรับ-จ่าย
-    const transaction = this.parseTransactionMessage(message);
-    if (transaction) {
-      try {
-        // ค้นหาหมวดหมู่ที่เหมาะสม
-        const categories = await DatabaseService.getUserCategories(userId);
-        const category = this.findBestCategory(transaction.description || '', categories);
+          // บันทึกรายการ
+          await DatabaseService.createTransaction(
+            userId,
+            transaction.amount,
+            transaction.description,
+            category?.id
+          );
 
-        // บันทึกรายการ
-        await DatabaseService.createTransaction(
-          userId,
-          transaction.amount,
-          transaction.description,
-          category?.id
-        );
-
-        return [{
-          type: 'text',
-          text: `✅ บันทึกสำเร็จ!\n💰 จำนวน: ${transaction.amount.toLocaleString()} บาท\n📝 รายละเอียด: ${transaction.description}\n📂 หมวดหมู่: ${category?.name || 'ไม่ระบุ'}`
-        }];
-      } catch (error) {
-        console.error('Error saving transaction:', error);
-        return [{
-          type: 'text',
-          text: '❌ เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง'
-        }];
+          return [{
+            type: 'text',
+            text: `✅ บันทึกสำเร็จ!\n💰 จำนวน: ${transaction.amount.toLocaleString()} บาท\n📝 รายละเอียด: ${transaction.description}\n📂 หมวดหมู่: ${category?.name || 'ไม่ระบุ'}`
+          }];
+        } catch (error) {
+          console.error('Error saving transaction:', error);
+          return [{
+            type: 'text',
+            text: '❌ เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง\n\n🐱 ฟูกุขออภัยด้วยนะ!'
+          }];
+        }
       }
-    }
 
     // ข้อความทักทาย และคุยเล่น
     const casualResponse = this.getCasualResponse(text);
@@ -160,75 +174,97 @@ export class LineService {
   }
 
   static async getSummaryMessage(userId: string): Promise<Message[]> {
-    const now = new Date();
-    const summary = await DatabaseService.getMonthlySummary(userId, now.getFullYear(), now.getMonth() + 1);
+    try {
+      const now = new Date();
+      const summary = await DatabaseService.getMonthlySummary(userId, now.getFullYear(), now.getMonth() + 1);
 
-    const text = `📊 สรุปประจำเดือน ${now.getMonth() + 1}/${now.getFullYear()}\n\n` +
-      `💰 รายรับ: ${summary.total_income.toLocaleString()} บาท\n` +
-      `💸 รายจ่าย: ${summary.total_expense.toLocaleString()} บาท\n` +
-      `💵 คงเหลือ: ${summary.net_amount.toLocaleString()} บาท\n\n` +
-      `📱 ดูรายละเอียดเพิ่มเติมที่ ${process.env.APP_URL}/dashboard`;
+      const text = `📊 สรุปประจำเดือน ${now.getMonth() + 1}/${now.getFullYear()}\n\n` +
+        `💰 รายรับ: ${summary.total_income.toLocaleString()} บาท\n` +
+        `💸 รายจ่าย: ${summary.total_expense.toLocaleString()} บาท\n` +
+        `💵 คงเหลือ: ${summary.net_amount.toLocaleString()} บาท\n\n` +
+        `📱 ดูรายละเอียดเพิ่มเติมที่ ${process.env.APP_URL}/dashboard`;
 
-    return [{ type: 'text', text }];
+      return [{ type: 'text', text }];
+    } catch (error) {
+      console.error('Error getting summary:', error);
+      return [{
+        type: 'text',
+        text: '❌ ขณะนี้ไม่สามารถดึงข้อมูลสรุปได้ กรุณาลองใหม่ในภายหลัง\n\n🐱 ฟูกุขออภัยด้วยนะ!'
+      }];
+    }
   }
 
   static async getCategoriesMessage(userId: string): Promise<Message[]> {
-    const categories = await DatabaseService.getUserCategories(userId);
-    
-    const incomeCategories = categories.filter(c => c.type === 'income');
-    const expenseCategories = categories.filter(c => c.type === 'expense');
+    try {
+      const categories = await DatabaseService.getUserCategories(userId);
+      
+      const incomeCategories = categories.filter(c => c.type === 'income');
+      const expenseCategories = categories.filter(c => c.type === 'expense');
 
-    let text = '📂 หมวดหมู่ของคุณ\n\n';
-    
-    if (incomeCategories.length > 0) {
-      text += '💰 รายรับ:\n';
-      incomeCategories.forEach(cat => {
-        text += `• ${cat.name}\n`;
-      });
-      text += '\n';
-    }
-
-    if (expenseCategories.length > 0) {
-      text += '💸 รายจ่าย:\n';
-      expenseCategories.forEach(cat => {
-        text += `• ${cat.name}`;
-        if (cat.budget_amount) {
-          text += ` (งบ: ${cat.budget_amount.toLocaleString()})`;
-        }
+      let text = '📂 หมวดหมู่ของคุณ\n\n';
+      
+      if (incomeCategories.length > 0) {
+        text += '💰 รายรับ:\n';
+        incomeCategories.forEach(cat => {
+          text += `• ${cat.name}\n`;
+        });
         text += '\n';
-      });
+      }
+
+      if (expenseCategories.length > 0) {
+        text += '💸 รายจ่าย:\n';
+        expenseCategories.forEach(cat => {
+          text += `• ${cat.name}`;
+          if (cat.budget_amount) {
+            text += ` (งบ: ${cat.budget_amount.toLocaleString()})`;
+          }
+          text += '\n';
+        });
+      }
+
+      text += `\n📱 จัดการหมวดหมู่ที่ ${process.env.APP_URL}/dashboard`;
+
+      return [{ type: 'text', text }];
+    } catch (error) {
+      console.error('Error getting categories:', error);
+      return [{
+        type: 'text',
+        text: '❌ ขณะนี้ไม่สามารถดึงข้อมูลหมวดหมู่ได้ กรุณาลองใหม่ในภายหลัง\n\n🐱 ฟูกุขออภัยด้วยนะ!'
+      }];
     }
-
-    text += `\n📱 จัดการหมวดหมู่ที่ ${process.env.APP_URL}/dashboard`;
-
-    return [{ type: 'text', text }];
   }
 
   static async getBudgetMessage(userId: string): Promise<Message[]> {
-    const now = new Date();
-    const budgetStatus = await DatabaseService.getBudgetStatus(userId, now.getFullYear(), now.getMonth() + 1);
+    try {
+      const now = new Date();
+      const budgetStatus = await DatabaseService.getBudgetStatus(userId, now.getFullYear(), now.getMonth() + 1);
 
-    if (budgetStatus.length === 0) {
+      if (budgetStatus.length === 0) {
+        return [{
+          type: 'text',
+          text: '📊 ยังไม่มีการตั้งงบประมาณ\n\n📱 ตั้งงบประมาณที่ ${process.env.APP_URL}/dashboard'
+        }];
+      }
+
+      let text = `📊 สถานะงบประมาณเดือน ${now.getMonth() + 1}/${now.getFullYear()}\n\n`;
+
+      budgetStatus.forEach(budget => {
+        const percentage = Math.round(budget.percentage_used);
+        const status = percentage > 100 ? '🔴' : percentage > 80 ? '🟡' : '🟢';
+        text += `${status} ${budget.category_name}: ${percentage}%\n`;
+        text += `   ใช้: ${budget.spent_amount.toLocaleString()}/${budget.budget_amount.toLocaleString()} บาท\n\n`;
+      });
+
+      text += `📱 ดูรายละเอียดที่ ${process.env.APP_URL}/dashboard`;
+
+      return [{ type: 'text', text }];
+    } catch (error) {
+      console.error('Error getting budget:', error);
       return [{
         type: 'text',
-        text: '📊 ยังไม่มีการตั้งงบประมาณ\n\n📱 ตั้งงบประมาณที่ ${process.env.APP_URL}/dashboard'
+        text: '❌ ขณะนี้ไม่สามารถดึงข้อมูลงบประมาณได้ กรุณาลองใหม่ในภายหลัง\n\n🐱 ฟูกุขออภัยด้วยนะ!'
       }];
     }
-
-    let text = `📊 สถานะงบประมาณเดือน ${now.getMonth() + 1}/${now.getFullYear()}\n\n`;
-
-    budgetStatus.forEach(budget => {
-      const percentage = Math.round(budget.percentage_used);
-      const status = percentage > 100 ? '🔴' : percentage > 80 ? '🟡' : '🟢';
-      
-      text += `${status} ${budget.category_name}\n`;
-      text += `   ใช้: ${budget.spent_amount.toLocaleString()}/${budget.budget_amount.toLocaleString()} บาท (${percentage}%)\n`;
-      text += `   เหลือ: ${budget.remaining_amount.toLocaleString()} บาท\n\n`;
-    });
-
-    text += `📱 ดูรายละเอียดที่ ${process.env.APP_URL}/dashboard`;
-
-    return [{ type: 'text', text }];
   }
 
   static getHelpMessage(): Message[] {
@@ -442,9 +478,32 @@ export class LineService {
 
   static async replyMessage(replyToken: string, messages: Message[]) {
     try {
+      console.log('Attempting to reply with:', JSON.stringify(messages, null, 2));
+      
+      if (!messages || messages.length === 0) {
+        console.error('No messages to reply with');
+        return;
+      }
+
+      if (!replyToken) {
+        console.error('No reply token provided');
+        return;
+      }
+
       await client.replyMessage(replyToken, messages);
+      console.log('✅ Message replied successfully');
     } catch (error) {
       console.error('Error replying message:', error);
+      
+      // Log ข้อมูลเพิ่มเติมเพื่อ debug
+      console.error('Reply token:', replyToken);
+      console.error('Messages:', JSON.stringify(messages, null, 2));
+      console.error('LINE Config:', {
+        hasToken: !!process.env.LINE_CHANNEL_ACCESS_TOKEN,
+        hasSecret: !!process.env.LINE_CHANNEL_SECRET,
+        tokenLength: process.env.LINE_CHANNEL_ACCESS_TOKEN?.length || 0
+      });
+      
       throw error;
     }
   }

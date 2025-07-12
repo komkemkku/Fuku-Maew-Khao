@@ -24,11 +24,23 @@ async function getDisplayName(userId: string): Promise<string | undefined> {
 // ฟังก์ชันหลักสำหรับรับ Request จาก LINE
 export async function POST(req: NextRequest) {
     try {
-        const body: WebhookRequestBody = await req.json();
+        console.log('📨 Webhook received');
+        console.log('Headers:', Object.fromEntries(req.headers.entries()));
+        
+        const bodyText = await req.text();
+        console.log('Raw body:', bodyText);
+        
+        const body: WebhookRequestBody = JSON.parse(bodyText);
         const signature = req.headers.get('x-line-signature') || '';
 
+        console.log('Parsed body:', JSON.stringify(body, null, 2));
+        console.log('Signature:', signature);
+
         // ตรวจสอบลายเซ็นเพื่อให้แน่ใจว่า Request มาจาก LINE จริงๆ
-        if (!validateSignature(JSON.stringify(body), lineConfig.channelSecret, signature)) {
+        const isValidSignature = validateSignature(bodyText, lineConfig.channelSecret, signature);
+        console.log('Signature validation result:', isValidSignature);
+        
+        if (!isValidSignature) {
             console.error('Invalid signature');
             return new NextResponse('Invalid signature', { status: 401 });
         }
@@ -57,9 +69,15 @@ export async function POST(req: NextRequest) {
                         displayName
                     );
 
+                    console.log('Response messages:', JSON.stringify(responseMessages, null, 2));
+
                     // ตอบกลับผู้ใช้
-                    if (event.replyToken) {
+                    if (event.replyToken && responseMessages && responseMessages.length > 0) {
+                        console.log(`Replying with ${responseMessages.length} messages...`);
                         await LineService.replyMessage(event.replyToken, responseMessages);
+                        console.log('✅ Reply sent successfully');
+                    } else {
+                        console.log('⚠️ No reply token or no response messages');
                     }
                 }
                 else if (event.type === 'follow') {
@@ -83,4 +101,17 @@ export async function POST(req: NextRequest) {
         // เพื่อป้องกัน LINE ส่ง request เดิมมาซ้ำๆ
         return NextResponse.json({ status: 'error', message: (error as Error).message });
     }
+}
+
+// เพิ่ม GET method สำหรับทดสอบ webhook
+export async function GET() {
+    return NextResponse.json({ 
+        status: 'ok', 
+        message: 'Webhook is working',
+        config: {
+            hasAccessToken: !!process.env.LINE_CHANNEL_ACCESS_TOKEN,
+            hasSecret: !!process.env.LINE_CHANNEL_SECRET,
+            timestamp: new Date().toISOString()
+        }
+    });
 }
