@@ -282,12 +282,18 @@ export function DashboardContent({ userId }: DashboardContentProps) {
                   <button className="w-full px-4 py-2 text-left border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-blue-800">
                     📈 กราฟรายจ่าย
                   </button>
-                  <button className="w-full px-4 py-2 text-left border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-blue-800">
+                  <a 
+                    href="/categories"
+                    className="w-full px-4 py-2 text-left border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-blue-800 block"
+                  >
                     📂 จัดการหมวดหมู่
-                  </button>
-                  <button className="w-full px-4 py-2 text-left border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-blue-800">
+                  </a>
+                  <a 
+                    href="/budget"
+                    className="w-full px-4 py-2 text-left border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-blue-800 block"
+                  >
                     🎯 ตั้งงบประมาณ
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>

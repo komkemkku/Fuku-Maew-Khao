@@ -285,49 +285,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* Footer - สีขาวล้วน */}
-      <footer className="bg-white border-t border-gray-200 text-gray-600 py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-gray-900 font-semibold mb-4">เกี่ยวกับเรา</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-blue-600 transition-colors">เรื่องราวของเรา</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">ทีมงาน</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">ติดต่อเรา</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-gray-900 font-semibold mb-4">ผลิตภัณฑ์</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-pink-600 transition-colors">คุณสมบัติ</a></li>
-                <li><a href="#" className="hover:text-pink-600 transition-colors">ราคา</a></li>
-                <li><a href="#" className="hover:text-pink-600 transition-colors">API</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-gray-900 font-semibold mb-4">สนับสนุน</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-blue-600 transition-colors">ศูนย์ช่วยเหลือ</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">คำถามที่พบบ่อย</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">รายงานปัญหา</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-gray-900 font-semibold mb-4">ติดตาม</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-pink-600 transition-colors">Facebook</a></li>
-                <li><a href="#" className="hover:text-pink-600 transition-colors">Twitter</a></li>
-                <li><a href="#" className="hover:text-pink-600 transition-colors">Instagram</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-200 mt-8 pt-8 text-center">
-            <p>&copy; 2024 Fuku Neko. สงวนลิขสิทธิ์ทุกประการ. Made with 💕 for cat lovers</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
