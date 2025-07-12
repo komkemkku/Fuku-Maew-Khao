@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
                 }
             } catch (eventError) {
                 console.error('Error processing event:', event, eventError);
-                // ดำเนินการต่อกับ event ถัดไปแม้จะเกิดข้อผิดพลาด
+                // ดำเนินการต่อกับ event ถัดไปแม้จะเกิดข้อผิดพลาดot
             }
         }
 
