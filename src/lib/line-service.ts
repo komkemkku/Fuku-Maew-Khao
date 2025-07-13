@@ -1,6 +1,6 @@
 import { Client, Message } from '@line/bot-sdk';
 import { DatabaseService } from './database';
-import { Category } from '../types';
+import { Category, Transaction } from '../types';
 import { CatApiService } from './cat-api';
 import { FortuneService } from './fortune-service';
 import { SubscriptionService } from './subscription';
@@ -70,34 +70,53 @@ export class LineService {
       return await SecretCommandsService.processSecretCommand(text, userId) || [];
     }
 
+    // ปรับปรุงการตรวจจับคำสั่ง - เพิ่มการแก้ไขคำผิด
+    const normalizedText = this.normalizeCommand(text);
+    const wasCorreected = normalizedText !== text;
+
+    // แจ้งผู้ใช้เมื่อแก้ไขคำผิด
+    let correctionMessage: Message[] = [];
+    if (wasCorreected) {
+      correctionMessage = [{
+        type: 'text',
+        text: `🔧 ฟูกุแก้ไขให้แล้ว: "${text}" → "${normalizedText}" ✨`
+      }];
+    }
+
     // ฟีเจอร์ใหม่ Phase 1: แมวฟรี (รูปแมวสุ่ม)
-    if (text === 'แมวฟรี' || text === 'รูปแมว' || text === 'แมว' || text === 'cat') {
-      return await this.getCatImageMessage();
+    if (['แมวฟรี', 'รูปแมว', 'แมว', 'cat', 'แมวฟี', 'แมงฟรี', 'รูปแมง'].includes(normalizedText)) {
+      const result = await this.getCatImageMessage();
+      return [...correctionMessage, ...result];
     }
 
     // ฟีเจอร์ใหม่ Phase 1: แมวเลีย (เซียมซีแมว)
-    if (text === 'แมวเลีย' || text === 'เซียมซี' || text === 'ทำนาย' || text === 'fortune' || text === 'คำทำนาย') {
-      return this.getFortuneMessage();
+    if (['แมวเลีย', 'เซียมซี', 'ทำนาย', 'fortune', 'คำทำนาย', 'แมงเลีย', 'เซียมซิ', 'ทำนาข'].includes(normalizedText)) {
+      const result = this.getFortuneMessage();
+      return [...correctionMessage, ...result];
     }
 
     // ฟีเจอร์พิเศษ: คำทำนายการเงิน
-    if (text === 'ทำนายเงิน' || text === 'โชคการเงิน' || text === 'ดวงการเงิน') {
-      return this.getFinancialFortuneMessage();
+    if (['ทำนายเงิน', 'โชคการเงิน', 'ดวงการเงิน', 'ทำนายเงน', 'โชคเงิน', 'ดวงเงิน'].includes(normalizedText)) {
+      const result = this.getFinancialFortuneMessage();
+      return [...correctionMessage, ...result];
     }
 
-    // คำสั่งดูสรุป
-    if (text === 'สรุป' || text === 'summary') {
-      return await this.getSummaryMessage(userId);
+    // คำสั่งดูสรุป - เพิ่มปุ่ม
+    if (['สรุป', 'summary', 'สรุง', 'สุรป', 'สู่รุป'].includes(normalizedText)) {
+      const result = await this.getSummaryMessageWithButtons(userId);
+      return [...correctionMessage, ...result];
     }
 
     // คำสั่งดูหมวดหมู่
-    if (text === 'หมวดหมู่' || text === 'categories') {
-      return await this.getCategoriesMessage(userId);
+    if (['หมวดหมู่', 'categories', 'หมวดหมุ', 'หมวดมู', 'หมวดมุ'].includes(normalizedText)) {
+      const result = await this.getCategoriesMessageWithButtons(userId);
+      return [...correctionMessage, ...result];
     }
 
     // คำสั่งดูงบประมาณ
-    if (text === 'งบประมาณ' || text === 'budget') {
-      return await this.getBudgetMessage(userId);
+    if (['งบประมาณ', 'budget', 'งบประมาน', 'งบประมา', 'งบปะมาณ'].includes(normalizedText)) {
+      const result = await this.getBudgetMessageWithButtons(userId);
+      return [...correctionMessage, ...result];
     }
 
     // ข้อความแนะนำใช้ Dashboard
@@ -308,6 +327,31 @@ export class LineService {
     return null;
   }
 
+  // Helper function สำหรับแก้ไขคำผิด
+  static normalizeCommand(text: string): string {
+    const corrections = {
+      'แมงฟรี': 'แมวฟรี',
+      'แมงเลีย': 'แมวเลีย',
+      'รูปแมง': 'รูปแมว',
+      'เซียมซิ': 'เซียมซี',
+      'ทำนาข': 'ทำนาย',
+      'สรุง': 'สรุป',
+      'สุรป': 'สรุป',
+      'สู่รุป': 'สรุป',
+      'หมวดหมุ': 'หมวดหมู่',
+      'หมวดมู': 'หมวดหมู่',
+      'หมวดมุ': 'หมวดหมู่',
+      'งบประมาน': 'งบประมาณ',
+      'งบประมา': 'งบประมาณ',
+      'งบปะมาณ': 'งบประมาณ',
+      'ทำนายเงน': 'ทำนายเงิน',
+      'โชคเงิน': 'โชคการเงิน',
+      'ดวงเงิน': 'ดวงการเงิน'
+    };
+    
+    return corrections[text as keyof typeof corrections] || text;
+  }
+
   static findBestCategory(description: string, categories: Category[]) {
     const desc = description.toLowerCase();
     // คำที่เชื่อมโยงกับหมวดหมู่ต่างๆ
@@ -367,75 +411,255 @@ export class LineService {
     }
   }
 
-  static async getCategoriesMessage(userId: string): Promise<Message[]> {
+  // ดูสรุปพร้อมปุ่ม
+  static async getSummaryMessageWithButtons(userId: string): Promise<Message[]> {
     try {
-      const categories = await DatabaseService.getUserCategories(userId);
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear();
       
-      const incomeCategories = categories.filter(c => c.type === 'income');
-      const expenseCategories = categories.filter(c => c.type === 'expense');
-
-      let text = '📂 หมวดหมู่ของคุณ\n\n';
+      // สร้างวันที่เริ่มต้นและสิ้นสุดของเดือน
+      const startDate = new Date(currentYear, currentMonth - 1, 1);
+      const endDate = new Date(currentYear, currentMonth, 0);
       
-      if (incomeCategories.length > 0) {
-        text += '💰 รายรับ:\n';
-        incomeCategories.forEach(cat => {
-          text += `• ${cat.name}\n`;
-        });
-        text += '\n';
-      }
+      const monthlyTransactions = await DatabaseService.getUserTransactions(userId, startDate, endDate, 1000);
+      const totalIncome = monthlyTransactions
+        .filter((t: Transaction) => t.amount > 0)
+        .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+      const totalExpense = monthlyTransactions
+        .filter((t: Transaction) => t.amount < 0)
+        .reduce((sum: number, t: Transaction) => sum + Math.abs(t.amount), 0);
+      const balance = totalIncome - totalExpense;
+      
+      const message = `📊 สรุปรายรับ-รายจ่าย เดือน ${currentMonth}/${currentYear}\n\n` +
+        `💰 รายรับ: +${totalIncome.toLocaleString()} บาท\n` +
+        `💸 รายจ่าย: -${totalExpense.toLocaleString()} บาท\n` +
+        `${balance >= 0 ? '💚' : '💔'} คงเหลือ: ${balance >= 0 ? '+' : ''}${balance.toLocaleString()} บาท\n\n` +
+        `📈 รายการทั้งหมด: ${monthlyTransactions.length} รายการ`;
 
-      if (expenseCategories.length > 0) {
-        text += '💸 รายจ่าย:\n';
-        expenseCategories.forEach(cat => {
-          text += `• ${cat.name}`;
-          if (cat.budget_amount) {
-            text += ` (งบ: ${cat.budget_amount.toLocaleString()})`;
+      return [
+        {
+          type: 'text',
+          text: message
+        },
+        {
+          type: 'template',
+          altText: 'เมนูการจัดการ',
+          template: {
+            type: 'buttons',
+            text: '🎯 เลือกดูข้อมูลเพิ่มเติม',
+            actions: [
+              {
+                type: 'postback',
+                label: '📊 Dashboard',
+                data: 'action=dashboard&userId=' + userId
+              },
+              {
+                type: 'postback',
+                label: '📂 หมวดหมู่',
+                data: 'action=categories&userId=' + userId
+              },
+              {
+                type: 'postback',
+                label: '💎 Premium',
+                data: 'action=subscription&userId=' + userId
+              }
+            ]
           }
-          text += '\n';
-        });
-      }
-
-      text += `\n📱 จัดการหมวดหมู่เพิ่มเติมที่:\n${process.env.APP_URL}/dashboard`;
-
-      return [{ type: 'text', text }];
+        }
+      ];
     } catch (error) {
-      console.error('Error getting categories:', error);
+      console.error('Error getting summary:', error);
       return [{
         type: 'text',
-        text: '❌ ขณะนี้ไม่สามารถดึงข้อมูลหมวดหมู่ได้ กรุณาลองใหม่ในภายหลัง\n\n🐱 ฟูกุขออภัยด้วยนะ!'
+        text: '❌ เกิดข้อผิดพลาดในการดึงข้อมูลสรุป\n\n🐱 ฟูกุขออภัยด้วยนะครับ!'
       }];
     }
   }
 
-  static async getBudgetMessage(userId: string): Promise<Message[]> {
+  // ดูหมวดหมู่พร้อมปุ่ม
+  static async getCategoriesMessageWithButtons(userId: string): Promise<Message[]> {
     try {
-      const now = new Date();
-      const budgetStatus = await DatabaseService.getBudgetStatus(userId, now.getFullYear(), now.getMonth() + 1);
-
-      if (budgetStatus.length === 0) {
-        return [{
-          type: 'text',
-          text: '📊 ยังไม่มีการตั้งงบประมาณ\n\n📱 ตั้งงบประมาณที่:\n${process.env.APP_URL}/dashboard'
-        }];
+      const categories = await DatabaseService.getUserCategories(userId);
+      
+      if (categories.length === 0) {
+        return [
+          {
+            type: 'text',
+            text: '📂 ยังไม่มีหมวดหมู่\n\nลองบันทึกรายการแรกเพื่อสร้างหมวดหมู่อัตโนมัติ\nเช่น: "50 ค่ากาแฟ"'
+          },
+          {
+            type: 'template',
+            altText: 'เมนูการจัดการ',
+            template: {
+              type: 'buttons',
+              text: '🎯 จัดการข้อมูลของคุณ',
+              actions: [
+                {
+                  type: 'postback',
+                  label: '📊 Dashboard',
+                  data: 'action=dashboard&userId=' + userId
+                },
+                {
+                  type: 'postback',
+                  label: '💰 งบประมาณ',
+                  data: 'action=budget&userId=' + userId
+                },
+                {
+                  type: 'postback',
+                  label: '💎 Premium',
+                  data: 'action=subscription&userId=' + userId
+                }
+              ]
+            }
+          }
+        ];
       }
 
-      let text = `📊 สถานะงบประมาณเดือน ${now.getMonth() + 1}/${now.getFullYear()}\n\n`;
-
-      budgetStatus.forEach(budget => {
-        const percentage = Math.round(budget.percentage_used);
-        const status = percentage > 100 ? '🔴' : percentage > 80 ? '🟡' : '🟢';
-        text += `${status} ${budget.category_name}: ${percentage}%\n`;
-        text += `   ใช้: ${budget.spent_amount.toLocaleString()}/${budget.budget_amount.toLocaleString()} บาท\n\n`;
+      let message = '📂 หมวดหมู่ของคุณ:\n\n';
+      categories.forEach((category, index) => {
+        message += `${index + 1}. 📁 ${category.name}\n`;
       });
 
-      text += `📱 ดูรายละเอียดงบประมาณที่:\n${process.env.APP_URL}/dashboard`;
+      return [
+        {
+          type: 'text',
+          text: message
+        },
+        {
+          type: 'template',
+          altText: 'เมนูการจัดการ',
+          template: {
+            type: 'buttons',
+            text: '🎯 จัดการข้อมูลของคุณ',
+            actions: [
+              {
+                type: 'postback',
+                label: '📊 Dashboard',
+                data: 'action=dashboard&userId=' + userId
+              },
+              {
+                type: 'postback',
+                label: '💰 งบประมาณ',
+                data: 'action=budget&userId=' + userId
+              },
+              {
+                type: 'postback',
+                label: '💎 Premium',
+                data: 'action=subscription&userId=' + userId
+              }
+            ]
+          }
+        }
+      ];
+    } catch (error) {
+      console.error('Error getting categories:', error);
+      return [{
+        type: 'text',
+        text: '❌ เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่\n\n🐱 ฟูกุขออภัยด้วยนะครับ!'
+      }];
+    }
+  }
 
-      return [{ type: 'text', text }];
+  // ดูงบประมาณพร้อมปุ่ม
+  static async getBudgetMessageWithButtons(userId: string): Promise<Message[]> {
+    try {
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear();
+      
+      const categories = await DatabaseService.getUserCategories(userId);
+      
+      if (categories.length === 0) {
+        return [
+          {
+            type: 'text',
+            text: '💰 ยังไม่มีข้อมูลงบประมาณ\n\nเริ่มต้นด้วยการบันทึกรายการแรก\nเช่น: "50 ค่ากาแฟ"'
+          },
+          {
+            type: 'template',
+            altText: 'เมนูการจัดการ',
+            template: {
+              type: 'buttons',
+              text: '🎯 จัดการข้อมูลของคุณ',
+              actions: [
+                {
+                  type: 'postback',
+                  label: '📊 Dashboard',
+                  data: 'action=dashboard&userId=' + userId
+                },
+                {
+                  type: 'postback',
+                  label: '📂 หมวดหมู่',
+                  data: 'action=categories&userId=' + userId
+                },
+                {
+                  type: 'postback',
+                  label: '💎 Premium',
+                  data: 'action=subscription&userId=' + userId
+                }
+              ]
+            }
+          }
+        ];
+      }
+
+      let message = `💰 งบประมาณ เดือน ${currentMonth}/${currentYear}\n\n`;
+      
+      // สร้างวันที่เริ่มต้นและสิ้นสุดของเดือน
+      const startDate = new Date(currentYear, currentMonth - 1, 1);
+      const endDate = new Date(currentYear, currentMonth, 0);
+      
+      // ดึงรายการทั้งหมดของเดือนนี้
+      const allTransactions = await DatabaseService.getUserTransactions(userId, startDate, endDate, 1000);
+      
+      for (const category of categories) {
+        // กรองรายการตามหมวดหมู่
+        const categoryTransactions = allTransactions.filter((t: Transaction) => 
+          t.category_id === category.id && t.amount < 0
+        );
+        const totalSpent = categoryTransactions
+          .reduce((sum: number, t: Transaction) => sum + Math.abs(t.amount), 0);
+        
+        message += `📁 ${category.name}: ${totalSpent.toLocaleString()} บาท\n`;
+      }
+
+      return [
+        {
+          type: 'text',
+          text: message
+        },
+        {
+          type: 'template',
+          altText: 'เมนูการจัดการ',
+          template: {
+            type: 'buttons',
+            text: '🎯 จัดการข้อมูลของคุณ',
+            actions: [
+              {
+                type: 'postback',
+                label: '📊 Dashboard',
+                data: 'action=dashboard&userId=' + userId
+              },
+              {
+                type: 'postback',
+                label: '📂 หมวดหมู่',
+                data: 'action=categories&userId=' + userId
+              },
+              {
+                type: 'postback',
+                label: '💎 Premium',
+                data: 'action=subscription&userId=' + userId
+              }
+            ]
+          }
+        }
+      ];
     } catch (error) {
       console.error('Error getting budget:', error);
       return [{
         type: 'text',
-        text: '❌ ขณะนี้ไม่สามารถดึงข้อมูลงบประมาณได้ กรุณาลองใหม่ในภายหลัง\n\n🐱 ฟูกุขออภัยด้วยนะ!'
+        text: '❌ เกิดข้อผิดพลาดในการดึงข้อมูลงบประมาณ\n\n🐱 ฟูกุขออภัยด้วยนะครับ!'
       }];
     }
   }
@@ -448,17 +672,22 @@ export class LineService {
     let helpText = `🤖 Fuku Neko ${planEmoji} ${planName}\n\n` +
       `🎪 ฟีเจอร์สนุกๆ:\n` +
       `• "แมวฟรี" - รับรูปแมวสุ่มน่ารักๆ 🐱\n` +
-      `• "แมวเลีา" - ขอคำทำนายวันนี้ 🔮\n` +
+      `• "แมวเลีย" - ขอคำทำนายวันนี้ 🔮\n` +
       `• "ทำนายเงิน" - ดูดวงการเงินเฉพาะ 💰\n\n` +
       `📝 บันทึกรายการ:\n` +
       `• "50 ค่ากาแฟ" - บันทึกรายจ่าย\n` +
       `• "ค่าอาหาร 120" - บันทึกแบบกลับหน้า\n` +
       `• "500 เงินเดือน" - บันทึกรายรับ\n` +
       `• "ค่าข้าว150" - พิมพ์ติดกันได้\n\n` +
-      `📊 ดูข้อมูลการเงิน:\n` +
+      `📊 ดูข้อมูลการเงิน (มีปุ่มให้กด!):\n` +
       `• "สรุป" - ดูสรุปรายรับ-จ่ายเดือนนี้\n` +
-      `• "หมวดหมู่" - ดูหมวดหมู่ที่มี + งบประมาณ\n` +
-      `• "งบประมาณ" - เช็คสถานะงบแต่ละหมวด\n\n`;
+      `• "หมวดหมู่" - ดูหมวดหมู่ที่มี\n` +
+      `• "งบประมาณ" - เช็คสถานะงบแต่ละหมวด\n\n` +
+      `🔧 ระบบแก้ไขคำผิดอัตโนมัติ:\n` +
+      `• พิมพ์ "แมงฟรี" → "แมวฟรี"\n` +
+      `• พิมพ์ "สรุง" → "สรุป"\n` +
+      `• พิมพ์ "หมวดหมุ" → "หมวดหมู่"\n` +
+      `• ฟูกุเข้าใจแม้พิมพ์ผิดเล็กน้อย! 🎯\n\n`;
 
     // Subscription status
     if (subscriptionPlan === 'free') {
