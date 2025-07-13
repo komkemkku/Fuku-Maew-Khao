@@ -57,11 +57,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Clear existing transactions first
-    await DatabaseService.clearUserTransactions(userId);
+    // Get user by LINE User ID to get internal user ID, or create if not exists
+    let user = await DatabaseService.getUserByLineId(userId);
+    if (!user) {
+      user = await DatabaseService.createUser(userId, `Demo User ${userId.slice(-3)}`);
+    }
 
-    // Create or get user
-    const user = await DatabaseService.createUser(userId, `Demo User ${userId.slice(-3)}`);
+    // Clear existing transactions first
+    await DatabaseService.clearUserTransactions(user.id);
     
     // Generate demo data
     const { demoCategories, demoTransactions } = generateDemoData();

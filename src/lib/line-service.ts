@@ -30,24 +30,24 @@ export class LineService {
     return `${process.env.APP_URL}/dashboard?user=${userId}&token=auto`;
   }
 
-  static async handleMessage(userMessage: string, userId: string, displayName?: string) {
+  static async handleMessage(userMessage: string, lineUserId: string, displayName?: string) {
     let user;
     
     try {
       // สร้างหรืออัปเดตผู้ใช้ในฐานข้อมูล
-      user = await DatabaseService.createUser(userId, displayName);
+      user = await DatabaseService.createUser(lineUserId, displayName);
       
       // ตรวจสอบสถานะ subscription
       user = await DatabaseService.checkSubscriptionStatus(user.id);
       
       // ตั้งค่า Rich Menu เริ่มต้นสำหรับผู้ใช้ใหม่
-      await this.setupDefaultRichMenu(userId);
+      await this.setupDefaultRichMenu(lineUserId);
     } catch (dbError) {
       console.error('Database connection failed, using fallback mode:', dbError);
       // ใช้ fallback user สำหรับกรณีฐานข้อมูลเชื่อมต่อไม่ได้
       user = { 
-        id: userId, 
-        line_user_id: userId, 
+        id: lineUserId, 
+        line_user_id: lineUserId, 
         display_name: displayName || 'ผู้ใช้ไม่ระบุชื่อ', 
         subscription_plan: 'free',
         subscription_start_date: null,
@@ -56,18 +56,18 @@ export class LineService {
       };
     }
     
-    // ประมวลผลข้อความ
-    const response = await this.processUserMessage(userMessage, user.id, user.subscription_plan as 'free' | 'premium');
+    // ประมวลผลข้อความ - ส่ง internal user ID และ LINE user ID
+    const response = await this.processUserMessage(userMessage, user.id, lineUserId, user.subscription_plan as 'free' | 'premium');
     
     return response;
   }
 
-  static async processUserMessage(message: string, userId: string, subscriptionPlan: 'free' | 'premium' = 'free'): Promise<Message[]> {
+  static async processUserMessage(message: string, internalUserId: string, lineUserId: string, subscriptionPlan: 'free' | 'premium' = 'free'): Promise<Message[]> {
     const text = message.trim().toLowerCase();
 
     // ตรวจสอบคำสั่งลับก่อน
     if (SecretCommandsService.isSecretCommand(text)) {
-      return await SecretCommandsService.processSecretCommand(text, userId) || [];
+      return await SecretCommandsService.processSecretCommand(text, internalUserId) || [];
     }
 
     // ปรับปรุงการตรวจจับคำสั่ง - เพิ่มการแก้ไขคำผิด
@@ -103,25 +103,25 @@ export class LineService {
 
     // คำสั่งดูสรุป - เพิ่มปุ่ม
     if (['สรุป', 'summary', 'สรุง', 'สุรป', 'สู่รุป'].includes(normalizedText)) {
-      const result = await this.getSummaryMessageWithButtons(userId);
+      const result = await this.getSummaryMessageWithButtons(internalUserId);
       return [...correctionMessage, ...result];
     }
 
     // คำสั่งดูหมวดหมู่
     if (['หมวดหมู่', 'categories', 'หมวดหมุ', 'หมวดมู', 'หมวดมุ'].includes(normalizedText)) {
-      const result = await this.getCategoriesMessageWithButtons(userId);
+      const result = await this.getCategoriesMessageWithButtons(internalUserId);
       return [...correctionMessage, ...result];
     }
 
     // คำสั่งดูงบประมาณ
     if (['งบประมาณ', 'budget', 'งบประมาน', 'งบประมา', 'งบปะมาณ'].includes(normalizedText)) {
-      const result = await this.getBudgetMessageWithButtons(userId);
+      const result = await this.getBudgetMessageWithButtons(internalUserId);
       return [...correctionMessage, ...result];
     }
 
     // ข้อความแนะนำใช้ Dashboard
     if (text.includes('dashboard') || text.includes('แดชบอร์ด') || text.includes('เว็บ') || text === 'เว็บไซต์') {
-      const dashboardUrl = this.getDashboardUrl(userId);
+      const dashboardUrl = this.getDashboardUrl(lineUserId);
       return [{
         type: 'text',
         text: `🌟 ยินดีต้อนรับสู่ Dashboard ฟูกุเนโกะ!\n\n📊 คุณสามารถเข้าใช้งานได้ทันทีโดยไม่ต้องเข้าสู่ระบบ:\n${dashboardUrl}\n\n✨ คุณสมบัติพิเศษ:\n• ดูสรุปรายรับ-รายจ่ายแบบ Real-time\n• จัดการหมวดหมู่ได้อย่างง่าย\n• ตั้งงบประมาณและติดตามได้\n• ใช้งานได้ทุกอุปกรณ์\n\n💡 เคล็ดลับ: เปิดในเบราว์เซอร์เพื่อประสบการณ์ที่ดีที่สุด!\n\n📱 หรือใช้ Rich Menu ด้านล่างเพื่อเข้าถึงฟีเจอร์ต่างๆ ได้ง่ายขึ้น!`
@@ -141,10 +141,10 @@ export class LineService {
     // คำสั่งดาวน์เกรด (สำหรับ demo)
     if (text === '#downgrade-free' || text === '#demo-free') {
       try {
-        await DatabaseService.downgradeToFree(userId);
+        await DatabaseService.downgradeToFree(internalUserId);
         
         // อัปเดต Rich Menu เป็น Free version
-        await this.updateUserRichMenu(userId, 'free');
+        await this.updateUserRichMenu(lineUserId, 'free');
         
         return [{
           type: 'text',
@@ -169,9 +169,9 @@ export class LineService {
     // คำสั่งดูสถานะ subscription
     if (text === 'สถานะ' || text === 'status' || text === 'subscription-status') {
       try {
-        const userInfo = await DatabaseService.checkSubscriptionStatus(userId);
-        const monthlyTransactions = await this.getMonthlyTransactionCount(userId);
-        const categories = await DatabaseService.getUserCategories(userId);
+        const userInfo = await DatabaseService.checkSubscriptionStatus(internalUserId);
+        const monthlyTransactions = await this.getMonthlyTransactionCount(internalUserId);
+        const categories = await DatabaseService.getUserCategories(internalUserId);
         
         let statusText = `📊 สถานะบัญชีของคุณ\n\n`;
         statusText += `👤 แพลน: ${userInfo.subscription_plan === 'premium' ? '👑 Premium' : '🆓 Free'}\n`;
@@ -215,8 +215,8 @@ export class LineService {
     if (transaction) {
       try {
         // ตรวจสอบ subscription limits ก่อนบันทึก
-        const categories = await DatabaseService.getUserCategories(userId);
-        const monthlyTransactions = await this.getMonthlyTransactionCount(userId);
+        const categories = await DatabaseService.getUserCategories(internalUserId);
+        const monthlyTransactions = await this.getMonthlyTransactionCount(internalUserId);
         
         const limitCheck = await SubscriptionService.checkLimits(subscriptionPlan, {
           categories: categories.length,
@@ -235,7 +235,7 @@ export class LineService {
 
         // บันทึกรายการ
         await DatabaseService.createTransaction(
-          userId,
+          internalUserId,
           transaction.amount,
           transaction.description,
           category?.id
@@ -438,10 +438,19 @@ export class LineService {
     );
   }
 
-  static async getSummaryMessage(userId: string): Promise<Message[]> {
+  static async getSummaryMessage(lineUserId: string): Promise<Message[]> {
     try {
+      // ค้นหาผู้ใช้จาก LINE User ID
+      const user = await DatabaseService.getUserByLineId(lineUserId);
+      if (!user) {
+        return [{
+          type: 'text',
+          text: '❌ ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนก่อนใช้งาน'
+        }];
+      }
+
       const now = new Date();
-      const summary = await DatabaseService.getMonthlySummary(userId, now.getFullYear(), now.getMonth() + 1);
+      const summary = await DatabaseService.getMonthlySummary(user.id, now.getFullYear(), now.getMonth() + 1);
 
       const text = `📊 สรุปประจำเดือน ${now.getMonth() + 1}/${now.getFullYear()}\n\n` +
         `💰 รายรับ: ${summary.total_income.toLocaleString()} บาท\n` +
@@ -461,8 +470,17 @@ export class LineService {
   }
 
   // ดูสรุปพร้อมปุ่ม
-  static async getSummaryMessageWithButtons(userId: string): Promise<Message[]> {
+  static async getSummaryMessageWithButtons(lineUserId: string): Promise<Message[]> {
     try {
+      // ค้นหาผู้ใช้จาก LINE User ID
+      const user = await DatabaseService.getUserByLineId(lineUserId);
+      if (!user) {
+        return [{
+          type: 'text',
+          text: '❌ ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนก่อนใช้งาน'
+        }];
+      }
+
       const currentDate = new Date();
       const currentMonth = currentDate.getMonth() + 1;
       const currentYear = currentDate.getFullYear();
@@ -471,7 +489,7 @@ export class LineService {
       const startDate = new Date(currentYear, currentMonth - 1, 1);
       const endDate = new Date(currentYear, currentMonth, 0);
       
-      const monthlyTransactions = await DatabaseService.getUserTransactions(userId, startDate, endDate, 1000);
+      const monthlyTransactions = await DatabaseService.getUserTransactions(user.id, startDate, endDate, 1000);
       
       // คำนวณรายรับ (จำนวนเงินเป็นบวก)
       const totalIncome = monthlyTransactions

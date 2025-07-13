@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WebhookRequestBody, validateSignature, Client, Message } from '@line/bot-sdk';
 import { LineService } from '../../../lib/line-service';
+import { DatabaseService } from '../../../lib/database';
 
 // การตั้งค่าสำหรับเชื่อมต่อกับ LINE
 const lineConfig = {
@@ -134,13 +135,45 @@ export async function POST(req: NextRequest) {
                             break;
                             
                         case 'categories':
-                            // แสดงหมวดหมู่
-                            responseMessages = await LineService.getCategoriesMessageWithButtons(userId);
+                            // แสดงหมวดหมู่ - ต้องแปลง LINE User ID เป็น internal user ID
+                            try {
+                                const user = await DatabaseService.getUserByLineId(userId);
+                                if (user) {
+                                    responseMessages = await LineService.getCategoriesMessageWithButtons(user.id);
+                                } else {
+                                    responseMessages = [{
+                                        type: 'text',
+                                        text: '❌ ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนก่อนใช้งาน'
+                                    }];
+                                }
+                            } catch (error) {
+                                console.error('Error getting categories:', error);
+                                responseMessages = [{
+                                    type: 'text',
+                                    text: '❌ เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่'
+                                }];
+                            }
                             break;
                             
                         case 'budget':
-                            // แสดงงบประมาณ
-                            responseMessages = await LineService.getBudgetMessageWithButtons(userId);
+                            // แสดงงบประมาณ - ต้องแปลง LINE User ID เป็น internal user ID
+                            try {
+                                const user = await DatabaseService.getUserByLineId(userId);
+                                if (user) {
+                                    responseMessages = await LineService.getBudgetMessageWithButtons(user.id);
+                                } else {
+                                    responseMessages = [{
+                                        type: 'text',
+                                        text: '❌ ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนก่อนใช้งาน'
+                                    }];
+                                }
+                            } catch (error) {
+                                console.error('Error getting budget:', error);
+                                responseMessages = [{
+                                    type: 'text',
+                                    text: '❌ เกิดข้อผิดพลาดในการดึงข้อมูลงบประมาณ'
+                                }];
+                            }
                             break;
                             
                         default:

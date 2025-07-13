@@ -4,12 +4,12 @@ import { DatabaseService } from '@/lib/database';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const lineUserId = searchParams.get('userId'); // This is actually LINE User ID
     const limit = parseInt(searchParams.get('limit') || '10');
     const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : undefined;
     const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined;
 
-    if (!userId) {
+    if (!lineUserId) {
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
@@ -17,11 +17,21 @@ export async function GET(request: NextRequest) {
     }
 
     // For demo purposes, we'll use a mock user ID if the provided one is "demo_user_123"
-    let actualUserId = userId;
-    if (userId === 'demo_user_123') {
+    let actualUserId: string;
+    if (lineUserId === 'demo_user_123') {
       // Create or get demo user
       const demoUser = await DatabaseService.createUser('demo_user_123', 'Demo User');
       actualUserId = demoUser.id;
+    } else {
+      // Get user by LINE User ID to get internal user ID
+      const user = await DatabaseService.getUserByLineId(lineUserId);
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
+      actualUserId = user.id;
     }
 
     const transactions = await DatabaseService.getUserTransactions(actualUserId, startDate, endDate, limit);
@@ -39,9 +49,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, amount, description, categoryId, transactionDate } = body;
+    const { userId: lineUserId, amount, description, categoryId, transactionDate } = body;
 
-    if (!userId || amount === undefined) {
+    if (!lineUserId || amount === undefined) {
       return NextResponse.json(
         { error: 'User ID and amount are required' },
         { status: 400 }
@@ -49,11 +59,21 @@ export async function POST(request: NextRequest) {
     }
 
     // For demo purposes, we'll use a mock user ID if the provided one is "demo_user_123"
-    let actualUserId = userId;
-    if (userId === 'demo_user_123') {
+    let actualUserId: string;
+    if (lineUserId === 'demo_user_123') {
       // Create or get demo user
       const demoUser = await DatabaseService.createUser('demo_user_123', 'Demo User');
       actualUserId = demoUser.id;
+    } else {
+      // Get user by LINE User ID to get internal user ID
+      const user = await DatabaseService.getUserByLineId(lineUserId);
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
+      actualUserId = user.id;
     }
 
     const transaction = await DatabaseService.createTransaction(
