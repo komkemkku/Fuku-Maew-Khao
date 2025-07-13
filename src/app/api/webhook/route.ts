@@ -142,6 +142,11 @@ export async function POST(req: NextRequest) {
                             responseMessages = await LineService.getCategoriesMessageWithButtons(userId);
                             break;
                             
+                        case 'budget':
+                            // แสดงงบประมาณ
+                            responseMessages = await LineService.getBudgetMessageWithButtons(userId);
+                            break;
+                            
                         default:
                             responseMessages = [{
                                 type: 'text',
