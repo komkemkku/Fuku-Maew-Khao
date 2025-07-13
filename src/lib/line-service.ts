@@ -506,17 +506,17 @@ export class LineService {
               {
                 type: 'postback',
                 label: '🏠 หน้าแรก',
-                data: 'action=home&userId=' + userId
+                data: 'action=home'
               },
               {
                 type: 'postback',
                 label: '📊 ภาพรวม',
-                data: 'action=dashboard&userId=' + userId
+                data: 'action=dashboard'
               },
               {
                 type: 'postback',
                 label: '💎 Premium',
-                data: 'action=subscription&userId=' + userId
+                data: 'action=subscription'
               }
             ]
           }
@@ -552,17 +552,17 @@ export class LineService {
                 {
                   type: 'postback',
                   label: '🏠 หน้าแรก',
-                  data: 'action=home&userId=' + userId
+                  data: 'action=home'
                 },
                 {
                   type: 'postback',
                   label: '📊 ภาพรวม',
-                  data: 'action=dashboard&userId=' + userId
+                  data: 'action=dashboard'
                 },
                 {
                   type: 'postback',
                   label: '💎 Premium',
-                  data: 'action=subscription&userId=' + userId
+                  data: 'action=subscription'
                 }
               ]
             }
@@ -589,17 +589,17 @@ export class LineService {
                 {
                   type: 'postback',
                   label: '🏠 หน้าแรก',
-                  data: 'action=home&userId=' + userId
+                  data: 'action=home'
                 },
                 {
                   type: 'postback',
                   label: '📊 ภาพรวม',
-                  data: 'action=dashboard&userId=' + userId
+                  data: 'action=dashboard'
                 },
                 {
                   type: 'postback',
                   label: '📊 งบประมาณ',
-                  data: 'action=budget&userId=' + userId
+                  data: 'action=budget'
                 }
               ]
           }
@@ -639,17 +639,17 @@ export class LineService {
                 {
                   type: 'postback',
                   label: '🏠 หน้าแรก',
-                  data: 'action=home&userId=' + userId
+                  data: 'action=home'
                 },
                 {
                   type: 'postback',
                   label: '📊 ภาพรวม',
-                  data: 'action=dashboard&userId=' + userId
+                  data: 'action=dashboard'
                 },
                 {
                   type: 'postback',
                   label: '� หมวดหมู่',
-                  data: 'action=categories&userId=' + userId
+                  data: 'action=categories'
                 }
               ]
             }
@@ -692,17 +692,17 @@ export class LineService {
               {
                 type: 'postback',
                 label: '🏠 หน้าแรก',
-                data: 'action=home&userId=' + userId
+                data: 'action=home'
               },
               {
                 type: 'postback',
                 label: '� Dashboard',
-                data: 'action=dashboard&userId=' + userId
+                data: 'action=dashboard'
               },
               {
                 type: 'postback',
                 label: '� หมวดหมู่',
-                data: 'action=categories&userId=' + userId
+                data: 'action=categories'
               }
             ]
           }

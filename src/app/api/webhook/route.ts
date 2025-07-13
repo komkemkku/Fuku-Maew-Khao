@@ -99,16 +99,12 @@ export async function POST(req: NextRequest) {
                     const postbackData = event.postback.data;
                     console.log(`User ${userId} pressed button: ${postbackData}`);
 
-                    // แยกข้อมูล action และ userId
+                    // แยกข้อมูล action จากปุ่ม
                     const params = new URLSearchParams(postbackData);
                     const action = params.get('action');
-                    const targetUserId = params.get('userId');
                     
-                    // ตรวจสอบว่า userId ตรงกัน (security)
-                    if (targetUserId !== userId) {
-                        console.error('User ID mismatch in postback');
-                        continue;
-                    }
+                    // ใช้ userId จาก event แทนการตรวจสอบ userId ในปุ่ม
+                    // เนื่องจากการตรวจสอบลายเซ็น LINE นั้นปลอดภัยเพียงพอแล้ว
 
                     let responseMessages: Message[] = [];
                     
