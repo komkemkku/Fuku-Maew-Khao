@@ -45,7 +45,7 @@ export default function Home() {
               const data = await response.json();
               authenticatedUserId = data.lineUserId;
             }
-          } catch (error) {
+          } catch {
             // ไม่สามารถเข้าถึง cookie ได้
             console.log('No user session found');
           }

@@ -19,7 +19,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showUserSelect, setShowUserSelect] = useState(false);
   const [creatingDemo, setCreatingDemo] = useState(false);
-  const [isLineEnv, setIsLineEnv] = useState(false);
 
   useEffect(() => {
     async function initializeAuth() {
@@ -57,8 +56,8 @@ export default function DashboardPage() {
             setShowUserSelect(true);
           }
         }
-      } catch (error) {
-        console.error('Auth initialization failed:', error);
+      } catch (_error) {
+        console.error('Auth initialization failed:', _error);
         // Fallback to demo mode in development
         if (process.env.NODE_ENV === 'development') {
           setShowUserSelect(true);
@@ -141,12 +140,12 @@ export default function DashboardPage() {
             <div className="text-4xl mb-4">🐱</div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Fuku Neko</h1>
             <p className="text-gray-600">
-              {isLineEnv ? 'เข้าสู่ระบบผ่าน LINE' : 'เลือกผู้ใช้สำหรับทดสอบระบบ'}
+              {process.env.NODE_ENV === 'development' ? 'เลือกผู้ใช้สำหรับทดสอบระบบ' : 'เข้าสู่ระบบผ่าน LINE'}
             </p>
           </div>
 
           {/* LINE Login Button */}
-          {!isLineEnv && (
+          {process.env.NODE_ENV === 'development' && (
             <div className="mb-6">
               <button
                 onClick={handleLineLogin}
@@ -192,9 +191,9 @@ export default function DashboardPage() {
 
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              {isLineEnv ? 
-                '🔗 ใช้งานผ่าน LINE Official Account' : 
-                '🔮 ระบบจะสร้างข้อมูลตัวอย่างสำหรับทดสอบการทำงาน'
+              {process.env.NODE_ENV === 'development' ? 
+                '🔮 ระบบจะสร้างข้อมูลตัวอย่างสำหรับทดสอบการทำงาน' :
+                '🔗 ใช้งานผ่าน LINE Official Account'
               }
             </p>
           </div>
@@ -222,7 +221,7 @@ export default function DashboardPage() {
             onClick={handleLogout}
             className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors"
           >
-            {isLineEnv ? 'ออกจากระบบ' : 'เปลี่ยนผู้ใช้'}
+            {process.env.NODE_ENV === 'development' ? 'เปลี่ยนผู้ใช้' : 'ออกจากระบบ'}
           </button>
         </div>
       </div>
