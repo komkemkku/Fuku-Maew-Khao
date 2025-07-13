@@ -1,5 +1,5 @@
 import { pool } from './db';
-import { User, Category, Transaction } from '@/types';
+import { User, Category, Transaction } from '../types';
 
 export class DatabaseService {
   // User Management

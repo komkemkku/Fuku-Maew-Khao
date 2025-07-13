@@ -142,38 +142,43 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Free Plan - สีขาว */}
             <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
               <div className="text-center mb-8">
-                <div className="text-4xl mb-4">🐱</div>
+                <div className="text-5xl mb-4">🐱</div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">แมวน้อย</h3>
                 <div className="text-3xl font-bold text-gray-900 mb-4">
                   ฟรี
                   <span className="text-sm text-gray-500 font-normal">/เดือน</span>
                 </div>
+                <p className="text-gray-600 text-sm mb-6">เหมาะสำหรับผู้เริ่มต้น</p>
               </div>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-4 mb-8">
                 <li className="flex items-center text-gray-600">
-                  <span className="text-green-500 mr-3">✓</span>
-                  บันทึกรายรับ-รายจ่าย
+                  <span className="text-green-500 mr-3 text-lg">✓</span>
+                  บันทึกรายรับ-รายจ่าย 100 รายการ/เดือน
                 </li>
                 <li className="flex items-center text-gray-600">
-                  <span className="text-green-500 mr-3">✓</span>
-                  รายงานพื้นฐาน
+                  <span className="text-green-500 mr-3 text-lg">✓</span>
+                  รายงานพื้นฐาน + กราฟ
                 </li>
                 <li className="flex items-center text-gray-600">
-                  <span className="text-green-500 mr-3">✓</span>
-                  เป้าหมายการออม 3 รายการ
+                  <span className="text-green-500 mr-3 text-lg">✓</span>
+                  หมวดหมู่ 15 หมวด
                 </li>
                 <li className="flex items-center text-gray-600">
-                  <span className="text-green-500 mr-3">✓</span>
-                  LINE Bot
+                  <span className="text-green-500 mr-3 text-lg">✓</span>
+                  LINE Bot อัจฉริยะ
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="text-green-500 mr-3 text-lg">✓</span>
+                  รูปแมวสุ่ม + คำทำนาย
                 </li>
               </ul>
-              <button className="w-full py-3 border-2 border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-all duration-300">
-                ใช้งานฟรี
-              </button>
+              <Link href="/dashboard" className="block w-full py-3 border-2 border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-all duration-300 text-center">
+                เริ่มใช้งานฟรี
+              </Link>
             </div>
 
             {/* Pro Plan - สีชมพูล้วน (แนะนำ) */}
@@ -182,75 +187,51 @@ export default function Home() {
                 แนะนำ
               </div>
               <div className="text-center mb-8">
-                <div className="text-4xl mb-4">🐾</div>
+                <div className="text-5xl mb-4">🐾</div>
                 <h3 className="text-2xl font-bold text-white mb-2">แมวโปร</h3>
                 <div className="text-3xl font-bold text-white mb-4">
                   ฿99
                   <span className="text-sm text-pink-100 font-normal">/เดือน</span>
                 </div>
+                <p className="text-pink-100 text-sm mb-6">สำหรับผู้ใช้งานจริงจัง</p>
               </div>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-4 mb-8">
                 <li className="flex items-center text-white">
-                  <span className="text-white mr-3">✓</span>
+                  <span className="text-white mr-3 text-lg">✓</span>
                   ทุกอย่างในแผนฟรี
                 </li>
                 <li className="flex items-center text-white">
-                  <span className="text-white mr-3">✓</span>
-                  รายงานแบบละเอียด
+                  <span className="text-white mr-3 text-lg">✓</span>
+                  บันทึกรายการไม่จำกัด
                 </li>
                 <li className="flex items-center text-white">
-                  <span className="text-white mr-3">✓</span>
-                  เป้าหมายไม่จำกัด
+                  <span className="text-white mr-3 text-lg">✓</span>
+                  หมวดหมู่ไม่จำกัด
                 </li>
                 <li className="flex items-center text-white">
-                  <span className="text-white mr-3">✓</span>
-                  แจ้งเตือนอัจฉริยะ
+                  <span className="text-white mr-3 text-lg">✓</span>
+                  อ่านสลิปอัตโนมัติ (เร็วๆ นี้)
                 </li>
                 <li className="flex items-center text-white">
-                  <span className="text-white mr-3">✓</span>
+                  <span className="text-white mr-3 text-lg">✓</span>
+                  รายงานขั้นสูง + AI วิเคราะห์
+                </li>
+                <li className="flex items-center text-white">
+                  <span className="text-white mr-3 text-lg">✓</span>
+                  การแจ้งเตือนอัจฉริยะ
+                </li>
+                <li className="flex items-center text-white">
+                  <span className="text-white mr-3 text-lg">✓</span>
                   ส่งออกข้อมูล
                 </li>
+                <li className="flex items-center text-white">
+                  <span className="text-white mr-3 text-lg">✓</span>
+                  ไม่มีโฆษณา
+                </li>
               </ul>
-              <button className="w-full py-3 bg-white text-pink-600 rounded-full font-semibold hover:bg-pink-50 transition-all duration-300">
+              <Link href="/premium" className="block w-full py-3 bg-white text-pink-600 rounded-full font-semibold hover:bg-pink-50 transition-all duration-300 text-center">
                 อัปเกรดเลย
-              </button>
-            </div>
-
-            {/* Premium Plan - สีฟ้าล้วน */}
-            <div className="bg-blue-100 border border-blue-200 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="text-center mb-8">
-                <div className="text-4xl mb-4">👑</div>
-                <h3 className="text-2xl font-bold text-blue-900 mb-2">แมวราชา</h3>
-                <div className="text-3xl font-bold text-blue-900 mb-4">
-                  ฿199
-                  <span className="text-sm text-blue-600 font-normal">/เดือน</span>
-                </div>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-blue-700">
-                  <span className="text-blue-700 mr-3">✓</span>
-                  ทุกอย่างในแผนโปร
-                </li>
-                <li className="flex items-center text-blue-700">
-                  <span className="text-blue-700 mr-3">✓</span>
-                  AI วิเคราะห์การเงิน
-                </li>
-                <li className="flex items-center text-blue-700">
-                  <span className="text-blue-700 mr-3">✓</span>
-                  คำแนะนำส่วนบุคคล
-                </li>
-                <li className="flex items-center text-blue-700">
-                  <span className="text-blue-700 mr-3">✓</span>
-                  สนับสนุนลำดับความสำคัญ
-                </li>
-                <li className="flex items-center text-blue-700">
-                  <span className="text-blue-700 mr-3">✓</span>
-                  ปรึกษาผู้เชี่ยวชาญ
-                </li>
-              </ul>
-              <button className="w-full py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-all duration-300">
-                เป็นราชาเลย
-              </button>
+              </Link>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { SubscriptionFeatures } from '@/types';
+import { SubscriptionFeatures } from '../types';
 
 export class SubscriptionService {
   /**
