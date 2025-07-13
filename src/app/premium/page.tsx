@@ -120,9 +120,9 @@ export default function PremiumPage() {
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold text-white mb-2">
-                🐱 แมวน้อย
+                🐱 ฟรี
               </h3>
-              <div className="text-3xl font-bold text-white">ฟรี</div>
+              <div className="text-3xl font-bold text-white">0 บาท</div>
               <p className="text-white/80">ตลอดไป</p>
             </div>
             
@@ -156,9 +156,9 @@ export default function PremiumPage() {
           <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-8 border-2 border-yellow-300">
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold text-white mb-2">
-                👑 แมวโปร
+                👑 พรีเมียม
               </h3>
-              <div className="text-3xl font-bold text-white">฿99</div>
+              <div className="text-3xl font-bold text-white">99 บาท</div>
               <p className="text-white/90">/เดือน</p>
             </div>
             

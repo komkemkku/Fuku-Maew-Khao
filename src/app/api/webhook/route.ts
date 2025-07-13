@@ -59,6 +59,14 @@ export async function POST(req: NextRequest) {
                         : undefined;
 
                     console.log(`User ${userId} sent message: ${userMessage}`);
+                    
+                    // Auto-register user ถ้ายังไม่มีในระบบ (กรณีข้าม follow event)
+                    try {
+                        await DatabaseService.createUser(userId, displayName);
+                    } catch (error) {
+                        // ไม่ต้องแสดง error ถ้า user มีอยู่แล้ว
+                        console.log(`User ${userId} already exists or registration failed:`, error);
+                    }
 
                     // ประมวลผลข้อความและตอบกลับ
                     const responseMessages = await LineService.handleMessage(
@@ -111,41 +119,91 @@ export async function POST(req: NextRequest) {
                     
                     switch (action) {
                         case 'dashboard':
-                            // เปิด dashboard URL - ภาพรวมข้อมูลผู้ใช้
-                            responseMessages = [{
-                                type: 'text',
-                                text: `📊 ภาพรวมข้อมูลของคุณ\n\n🔗 กดลิงก์นี้เพื่อดูภาพรวมแบบละเอียด:\n${process.env.APP_URL || 'https://fukuneko-app.vercel.app'}/dashboard?lineUserId=${userId}&auto=true`
-                            }];
+                            // Dashboard - ปุ่มแทนลิงก์
+                            responseMessages = [
+                                {
+                                    type: 'text',
+                                    text: `📊 Dashboard\nภาพรวมข้อมูลการเงินของคุณ`
+                                },
+                                {
+                                    type: 'template',
+                                    altText: 'เข้าสู่ Dashboard',
+                                    template: {
+                                        type: 'buttons',
+                                        text: '🔗 เข้าสู่ระบบ',
+                                        actions: [
+                                            {
+                                                type: 'uri',
+                                                label: '📊 เปิด Dashboard',
+                                                uri: `https://fukuneko-app.vercel.app/dashboard?lineUserId=${userId}&auto=true`
+                                            }
+                                        ]
+                                    }
+                                }
+                            ];
                             break;
                             
                         case 'subscription':
-                            // เปิดหน้า premium package
-                            responseMessages = [{
-                                type: 'text',
-                                text: `💎 แพคเกจ Premium\n\n🐱 แมวน้อย (ฟรี) - 100 รายการ/เดือน\n👑 แมวโปร (฿99/เดือน) - ไม่จำกัด + ฟีเจอร์พิเศษ\n\n🔗 กดลิงก์นี้เพื่อดูรายละเอียดและอัปเกรด:\n${process.env.APP_URL || 'https://fukuneko-app.vercel.app'}/premium?lineUserId=${userId}&auto=true`
-                            }];
+                            // Premium Package - ปุ่มแทนลิงก์
+                            responseMessages = [
+                                {
+                                    type: 'text',
+                                    text: `💎 แพ็กเกจ Premium\n\n🐱 ฟรี: 0 บาท (100 รายการ/เดือน)\n👑 พรีเมียม: 99 บาท/เดือน (ไม่จำกัด)`
+                                },
+                                {
+                                    type: 'template',
+                                    altText: 'ดูแพ็กเกจ Premium',
+                                    template: {
+                                        type: 'buttons',
+                                        text: '🚀 เลือกแพ็กเกจ',
+                                        actions: [
+                                            {
+                                                type: 'uri',
+                                                label: '� ดูรายละเอียด',
+                                                uri: `https://fukuneko-app.vercel.app/premium?lineUserId=${userId}&auto=true`
+                                            }
+                                        ]
+                                    }
+                                }
+                            ];
                             break;
                             
                         case 'home':
-                            // เปิดหน้าแรก - index page
-                            responseMessages = [{
-                                type: 'text',
-                                text: `🏠 หน้าแรก Fuku Neko\n\n🔗 กดลิงก์นี้เพื่อดูข้อมูลทั่วไปและแพคเกจ:\n${process.env.APP_URL || 'https://fukuneko-app.vercel.app'}/?lineUserId=${userId}&auto=true`
-                            }];
+                            // หน้าแรก - ปุ่มแทนลิงก์
+                            responseMessages = [
+                                {
+                                    type: 'text',
+                                    text: `🏠 Fuku Neko\nผู้ช่วยการเงินส่วนตัว`
+                                },
+                                {
+                                    type: 'template',
+                                    altText: 'เข้าสู่หน้าแรก',
+                                    template: {
+                                        type: 'buttons',
+                                        text: '🌟 เริ่มใช้งาน',
+                                        actions: [
+                                            {
+                                                type: 'uri',
+                                                label: '🏠 เปิดหน้าแรก',
+                                                uri: `https://fukuneko-app.vercel.app/?lineUserId=${userId}&auto=true`
+                                            }
+                                        ]
+                                    }
+                                }
+                            ];
                             break;
                             
                         case 'categories':
                             // แสดงหมวดหมู่ - ต้องแปลง LINE User ID เป็น internal user ID
                             try {
-                                const user = await DatabaseService.getUserByLineId(userId);
-                                if (user) {
-                                    responseMessages = await LineService.getCategoriesMessageWithButtons(user.id);
-                                } else {
-                                    responseMessages = [{
-                                        type: 'text',
-                                        text: '❌ ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนก่อนใช้งาน'
-                                    }];
+                                let user = await DatabaseService.getUserByLineId(userId);
+                                if (!user) {
+                                    // Auto-register user ถ้ายังไม่มีในระบบ
+                                    const displayName = await getDisplayName(userId);
+                                    user = await DatabaseService.createUser(userId, displayName);
                                 }
+                                
+                                responseMessages = await LineService.getCategoriesMessageWithButtons(user.id);
                             } catch (error) {
                                 console.error('Error getting categories:', error);
                                 responseMessages = [{
@@ -158,15 +216,14 @@ export async function POST(req: NextRequest) {
                         case 'budget':
                             // แสดงงบประมาณ - ต้องแปลง LINE User ID เป็น internal user ID
                             try {
-                                const user = await DatabaseService.getUserByLineId(userId);
-                                if (user) {
-                                    responseMessages = await LineService.getBudgetMessageWithButtons(user.id);
-                                } else {
-                                    responseMessages = [{
-                                        type: 'text',
-                                        text: '❌ ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนก่อนใช้งาน'
-                                    }];
+                                let user = await DatabaseService.getUserByLineId(userId);
+                                if (!user) {
+                                    // Auto-register user ถ้ายังไม่มีในระบบ
+                                    const displayName = await getDisplayName(userId);
+                                    user = await DatabaseService.createUser(userId, displayName);
                                 }
+                                
+                                responseMessages = await LineService.getBudgetMessageWithButtons(user.id);
                             } catch (error) {
                                 console.error('Error getting budget:', error);
                                 responseMessages = [{
@@ -189,10 +246,20 @@ export async function POST(req: NextRequest) {
                     }
                 }
                 else if (event.type === 'follow') {
-                    // เมื่อมีคนแอดเพื่อน
+                    // เมื่อมีคนแอดเพื่อน - ลงทะเบียนผู้ใช้ทันที
                     const userId = event.source.userId;
                     if (userId) {
                         const displayName = await getDisplayName(userId);
+                        
+                        // ลงทะเบียนผู้ใช้ในระบบทันที
+                        try {
+                            await DatabaseService.createUser(userId, displayName);
+                            console.log(`✅ User registered successfully: ${userId} (${displayName})`);
+                        } catch (error) {
+                            console.error('Failed to register user on follow:', error);
+                        }
+                        
+                        // ส่งข้อความต้อนรับ
                         await LineService.handleMessage('ช่วยเหลือ', userId, displayName);
                     }
                 }

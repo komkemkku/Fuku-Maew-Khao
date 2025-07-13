@@ -1,7 +1,3 @@
-'use client';
-
-import Link from 'next/link';
-
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center px-4">
@@ -14,12 +10,12 @@ export default function NotFound() {
         <p className="text-gray-600 mb-8 max-w-md">
           ฟูกุไม่พบหน้าที่คุณต้องการ อาจจะถูกย้ายไปที่อื่นแล้วหรือไม่มีอยู่จริง
         </p>
-        <Link
+        <a
           href="/"
           className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
         >
           🏠 กลับหน้าแรก
-        </Link>
+        </a>
       </div>
     </div>
   );

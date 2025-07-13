@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-
 export default function GlobalError({
   error,
   reset,
@@ -27,12 +25,12 @@ export default function GlobalError({
           >
             🔄 ลองใหม่
           </button>
-          <Link
+          <a
             href="/"
             className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
             🏠 กลับหน้าแรก
-          </Link>
+          </a>
         </div>
       </div>
     </div>

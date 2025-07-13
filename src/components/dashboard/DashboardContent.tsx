@@ -21,9 +21,21 @@ export function DashboardContent({ userId }: DashboardContentProps) {
       // Load monthly summary
       const now = new Date();
       const summaryResponse = await fetch(`/api/summary?userId=${userId}&year=${now.getFullYear()}&month=${now.getMonth() + 1}`);
+      
       if (summaryResponse.ok) {
         const summaryData = await summaryResponse.json();
         setSummary(summaryData);
+      } else {
+        console.error('Summary API error:', summaryResponse.status);
+        // ถ้าไม่มีข้อมูล ให้สร้างข้อมูลเริ่มต้น
+        setSummary({
+          month: (now.getMonth() + 1).toString(),
+          year: now.getFullYear(),
+          total_income: 0,
+          total_expense: 0,
+          net_amount: 0,
+          categories: []
+        });
       }
 
       // Load recent transactions
@@ -31,10 +43,26 @@ export function DashboardContent({ userId }: DashboardContentProps) {
       if (transactionsResponse.ok) {
         const transactionsData = await transactionsResponse.json();
         setRecentTransactions(transactionsData);
+      } else {
+        console.error('Transactions API error:', transactionsResponse.status);
+        setRecentTransactions([]);
       }
 
     } catch (err) {
+      console.error('Dashboard load error:', err);
       setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+      
+      // สร้างข้อมูลเริ่มต้นในกรณีเกิดข้อผิดพลาด
+      const now = new Date();
+      setSummary({
+        month: (now.getMonth() + 1).toString(),
+        year: now.getFullYear(),
+        total_income: 0,
+        total_expense: 0,
+        net_amount: 0,
+        categories: []
+      });
+      setRecentTransactions([]);
     } finally {
       setLoading(false);
     }
@@ -187,6 +215,164 @@ export function DashboardContent({ userId }: DashboardContentProps) {
             <div className={`text-xs mt-1 ${summary.net_amount >= 0 ? 'text-blue-500' : 'text-orange-500'}`}>
               {summary.net_amount >= 0 ? 'เยี่ยม! ✨' : 'ระวังหน่อยนะ 😿'}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Data Message */}
+      {summary && summary.total_income === 0 && summary.total_expense === 0 && recentTransactions.length === 0 && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-sm border border-blue-200 p-8 mb-8 text-center">
+          <div className="text-6xl mb-4">🐱</div>
+          <h3 className="text-xl font-bold text-blue-900 mb-2">ยินดีต้อนรับสู่ Fuku Neko!</h3>
+          <p className="text-blue-700 mb-6">
+            ยังไม่มีข้อมูลรายรับ-รายจ่าย มาเริ่มต้นบันทึกข้อมูลกันเถอะ
+          </p>
+          
+          <div className="space-y-4 max-w-md mx-auto">
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <h4 className="font-semibold text-blue-900 mb-2">💡 วิธีเริ่มต้น</h4>
+              <div className="text-sm text-blue-700 space-y-1">
+                <p>• ส่งข้อความใน LINE Bot: "100 ค่ากาแฟ"</p>
+                <p>• พิมพ์ "สรุป" เพื่อดูภาพรวม</p>
+                <p>• พิมพ์ "หมวดหมู่" เพื่อจัดการหมวดหมู่</p>
+              </div>
+            </div>
+            
+            <button 
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/demo-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, demo: true })
+                  });
+                  if (response.ok) {
+                    await loadDashboardData();
+                  }
+                } catch (error) {
+                  console.error('Failed to create demo data:', error);
+                }
+              }}
+              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              🎯 สร้างข้อมูลตัวอย่าง
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Charts Section */}
+      {summary && (
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+              📊 สรุปภาพรวม
+            </h2>
+            
+            {/* Income vs Expense Chart */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">รายรับ vs รายจ่าย</h3>
+              <div className="space-y-4">
+                {/* Income Bar */}
+                <div className="flex items-center">
+                  <div className="w-20 text-sm text-gray-600 font-medium">รายรับ</div>
+                  <div className="flex-1 mx-4">
+                    <div className="bg-gray-200 rounded-full h-6 relative overflow-hidden">
+                      <div 
+                        className="bg-gradient-to-r from-green-400 to-green-600 h-full rounded-full transition-all duration-1000 ease-out"
+                        style={{
+                          width: summary.total_income > 0 ? '100%' : '0%'
+                        }}
+                      ></div>
+                      <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-white">
+                        ฿{summary.total_income.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-16 text-right text-green-600 font-bold text-sm">
+                    💰
+                  </div>
+                </div>
+                
+                {/* Expense Bar */}
+                <div className="flex items-center">
+                  <div className="w-20 text-sm text-gray-600 font-medium">รายจ่าย</div>
+                  <div className="flex-1 mx-4">
+                    <div className="bg-gray-200 rounded-full h-6 relative overflow-hidden">
+                      <div 
+                        className="bg-gradient-to-r from-red-400 to-red-600 h-full rounded-full transition-all duration-1000 ease-out"
+                        style={{
+                          width: summary.total_expense > 0 && summary.total_income > 0 
+                            ? `${Math.min((summary.total_expense / summary.total_income) * 100, 100)}%` 
+                            : summary.total_expense > 0 ? '100%' : '0%'
+                        }}
+                      ></div>
+                      <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-white">
+                        ฿{summary.total_expense.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-16 text-right text-red-600 font-bold text-sm">
+                    💸
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Category Breakdown */}
+            {summary.categories && summary.categories.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">รายจ่ายตามหมวดหมู่</h3>
+                <div className="space-y-3">
+                  {summary.categories
+                    .filter(cat => cat.category_type === 'expense' && (cat.total_amount || 0) > 0)
+                    .sort((a, b) => (b.total_amount || 0) - (a.total_amount || 0))
+                    .slice(0, 5)
+                    .map((category, index) => {
+                      const colors = [
+                        'from-blue-400 to-blue-600',
+                        'from-purple-400 to-purple-600', 
+                        'from-pink-400 to-pink-600',
+                        'from-orange-400 to-orange-600',
+                        'from-teal-400 to-teal-600'
+                      ];
+                      const maxExpense = Math.max(...summary.categories
+                        .filter(cat => cat.category_type === 'expense')
+                        .map(cat => cat.total_amount || 0));
+                      
+                      return (
+                        <div key={category.id} className="flex items-center">
+                          <div className="w-24 text-sm text-gray-600 font-medium truncate">
+                            {category.category_name || category.name}
+                          </div>
+                          <div className="flex-1 mx-4">
+                            <div className="bg-gray-200 rounded-full h-4 relative overflow-hidden">
+                              <div 
+                                className={`bg-gradient-to-r ${colors[index % colors.length]} h-full rounded-full transition-all duration-1000 ease-out`}
+                                style={{
+                                  width: maxExpense > 0 ? `${((category.total_amount || 0) / maxExpense) * 100}%` : '0%'
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                          <div className="w-20 text-right text-gray-700 font-semibold text-sm">
+                            ฿{(category.total_amount || 0).toLocaleString()}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+                
+                {/* Show message if no expense categories */}
+                {summary.categories.filter(cat => cat.category_type === 'expense' && (cat.total_amount || 0) > 0).length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-2">📝</div>
+                    <p>ยังไม่มีรายจ่ายในเดือนนี้</p>
+                    <p className="text-sm">ลองบันทึกรายการผ่าน LINE Bot กันเถอะ!</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

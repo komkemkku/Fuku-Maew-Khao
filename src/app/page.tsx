@@ -254,9 +254,9 @@ export default function Home() {
             <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
               <div className="text-center mb-8">
                 <div className="text-5xl mb-4">🐱</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">แมวน้อย</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">ฟรี</h3>
                 <div className="text-3xl font-bold text-gray-900 mb-4">
-                  ฟรี
+                  0 บาท
                   <span className="text-sm text-gray-500 font-normal">/เดือน</span>
                 </div>
                 <p className="text-gray-600 text-sm mb-6">เหมาะสำหรับผู้เริ่มต้น</p>
@@ -295,9 +295,9 @@ export default function Home() {
               </div>
               <div className="text-center mb-8">
                 <div className="text-5xl mb-4">🐾</div>
-                <h3 className="text-2xl font-bold text-white mb-2">แมวโปร</h3>
+                <h3 className="text-2xl font-bold text-white mb-2">พรีเมียม</h3>
                 <div className="text-3xl font-bold text-white mb-4">
-                  ฿99
+                  99 บาท
                   <span className="text-sm text-pink-100 font-normal">/เดือน</span>
                 </div>
                 <p className="text-pink-100 text-sm mb-6">สำหรับผู้ใช้งานจริงจัง</p>
