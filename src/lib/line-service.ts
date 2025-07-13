@@ -233,50 +233,15 @@ export class LineService {
         // ค้นหาหมวดหมู่ที่เหมาะสม
         const category = this.findBestCategory(transaction.description || '', categories);
 
-        // กำหนดจำนวนเงินให้ถูกต้องตามประเภทหมวดหมู่
-        let finalAmount = transaction.amount;
-        
-        // ถ้าเป็นหมวดรายจ่าย ให้เก็บเป็นลบ
-        if (category && category.type === 'expense') {
-          finalAmount = -Math.abs(transaction.amount);
-        }
-        // ถ้าเป็นหมวดรายรับ ให้เก็บเป็นบวก
-        else if (category && category.type === 'income') {
-          finalAmount = Math.abs(transaction.amount);
-        }
-        // ถ้าไม่มีหมวดหมู่ ให้ดูจากคำว่า "เงินเดือน", "รายได้", "โบนัส"
-        else {
-          const incomeKeywords = ['เงินเดือน', 'รายได้', 'โบนัส', 'เงินพิเศษ', 'ได้', 'รับ'];
-          const isIncome = incomeKeywords.some(keyword => 
-            transaction.description.toLowerCase().includes(keyword)
-          );
-          
-          if (isIncome) {
-            finalAmount = Math.abs(transaction.amount);
-          } else {
-            // Default เป็นรายจ่าย
-            finalAmount = -Math.abs(transaction.amount);
-          }
-        }
-
-        console.log('Transaction processing:', {
-          original: transaction.amount,
-          final: finalAmount,
-          description: transaction.description,
-          category: category?.name,
-          categoryType: category?.type
-        });
-
         // บันทึกรายการ
         await DatabaseService.createTransaction(
           userId,
-          finalAmount,
+          transaction.amount,
           transaction.description,
           category?.id
         );
 
-        const amountDisplay = finalAmount >= 0 ? `+${Math.abs(finalAmount)}` : `-${Math.abs(finalAmount)}`;
-        let successMessage = `✅ บันทึกสำเร็จ!\n💰 จำนวน: ${amountDisplay.toLocaleString()} บาท\n📝 รายละเอียด: ${transaction.description}\n📂 หมวดหมู่: ${category?.name || 'ไม่ระบุ'}`;
+        let successMessage = `✅ บันทึกสำเร็จ!\n💰 จำนวน: ${transaction.amount.toLocaleString()} บาท\n📝 รายละเอียด: ${transaction.description}\n📂 หมวดหมู่: ${category?.name || 'ไม่ระบุ'}`;
         
         // แสดง premium features hint สำหรับ free users
         if (subscriptionPlan === 'free') {
@@ -508,80 +473,22 @@ export class LineService {
       
       const monthlyTransactions = await DatabaseService.getUserTransactions(userId, startDate, endDate, 1000);
       
-      // Debug log เพื่อดูข้อมูล
-      console.log('Monthly transactions:', monthlyTransactions.length);
-      console.log('Sample transaction:', monthlyTransactions[0]);
-      
-      // ตรวจสอบว่ามีข้อมูลหรือไม่
-      if (!monthlyTransactions || monthlyTransactions.length === 0) {
-        return [{
-          type: 'text',
-          text: `📊 สรุปรายรับ-รายจ่าย เดือน ${currentMonth}/${currentYear}\n\n` +
-            `💰 รายรับ: +0 บาท\n` +
-            `💸 รายจ่าย: -0 บาท\n` +
-            `💚 คงเหลือ: +0 บาท\n\n` +
-            `📈 ยังไม่มีรายการในเดือนนี้\n\n` +
-            `ลองเพิ่มรายการแรกดู เช่น:\n"ข้าว 100" หรือ "500 เงินเดือน"`
-        }, {
-          type: 'template',
-          altText: 'เมนูการจัดการ',
-          template: {
-            type: 'buttons',
-            text: '🎯 เลือกดูข้อมูลเพิ่มเติม',
-            actions: [
-              {
-                type: 'postback',
-                label: '🏠 หน้าแรก',
-                data: 'action=home&userId=' + userId
-              },
-              {
-                type: 'postback',
-                label: '📊 Dashboard',
-                data: 'action=dashboard&userId=' + userId
-              },
-              {
-                type: 'postback',
-                label: '💎 Premium',
-                data: 'action=subscription&userId=' + userId
-              }
-            ]
-          }
-        }];
-      }
-      
-      // ฟังก์ชันแปลงค่าให้ปลอดภัย
-      const safeNumber = (value: string | number | null | undefined): number => {
-        if (value === null || value === undefined || value === '') return 0;
-        const num = typeof value === 'string' ? parseFloat(value) : Number(value);
-        return isNaN(num) ? 0 : num;
-      };
-      
       // คำนวณรายรับ (จำนวนเงินเป็นบวก)
-      const incomeTransactions = monthlyTransactions.filter((t: Transaction) => safeNumber(t.amount) > 0);
-      const totalIncome = incomeTransactions.reduce((sum: number, t: Transaction) => sum + safeNumber(t.amount), 0);
+      const totalIncome = monthlyTransactions
+        .filter((t: Transaction) => t.amount > 0)
+        .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
       
-      // คำนวณรายจ่าย (จำนวนเงินเป็นลบ)
-      const expenseTransactions = monthlyTransactions.filter((t: Transaction) => safeNumber(t.amount) < 0);
-      const totalExpense = Math.abs(expenseTransactions.reduce((sum: number, t: Transaction) => sum + safeNumber(t.amount), 0));
+      // คำนวณรายจ่าย (จำนวนเงินเป็นลบ แต่แสดงผลเป็นบวก)
+      const totalExpense = Math.abs(monthlyTransactions
+        .filter((t: Transaction) => t.amount < 0)
+        .reduce((sum: number, t: Transaction) => sum + t.amount, 0));
       
-      // คำนวณคงเหลือ
       const balance = totalIncome - totalExpense;
       
-      // Debug logs
-      console.log('Income transactions:', incomeTransactions.length, 'Total:', totalIncome);
-      console.log('Expense transactions:', expenseTransactions.length, 'Total:', totalExpense);
-      console.log('Balance:', balance);
-      
-      // ฟอร์แมตตัวเลขให้ถูกต้อง
-      const formatNumber = (num: number): string => {
-        if (isNaN(num) || num === null || num === undefined) return '0';
-        return Math.round(num).toLocaleString('th-TH');
-      };
-      
       const message = `📊 สรุปรายรับ-รายจ่าย เดือน ${currentMonth}/${currentYear}\n\n` +
-        `💰 รายรับ: +${formatNumber(totalIncome)} บาท\n` +
-        `💸 รายจ่าย: -${formatNumber(totalExpense)} บาท\n` +
-        `${balance >= 0 ? '💚' : '💔'} คงเหลือ: ${balance >= 0 ? '+' : ''}${formatNumber(balance)} บาท\n\n` +
+        `💰 รายรับ: +${totalIncome.toLocaleString()} บาท\n` +
+        `💸 รายจ่าย: -${totalExpense.toLocaleString()} บาท\n` +
+        `${balance >= 0 ? '💚' : '💔'} คงเหลือ: ${balance >= 0 ? '+' : ''}${balance.toLocaleString()} บาท\n\n` +
         `📈 รายการทั้งหมด: ${monthlyTransactions.length} รายการ`;
 
       return [
@@ -603,7 +510,7 @@ export class LineService {
               },
               {
                 type: 'postback',
-                label: '� Dashboard',
+                label: '📊 ภาพรวม',
                 data: 'action=dashboard&userId=' + userId
               },
               {
@@ -649,7 +556,7 @@ export class LineService {
                 },
                 {
                   type: 'postback',
-                  label: '� Dashboard',
+                  label: '📊 ภาพรวม',
                   data: 'action=dashboard&userId=' + userId
                 },
                 {
@@ -678,24 +585,23 @@ export class LineService {
           altText: 'เมนูการจัดการ',
           template: {
             type: 'buttons',
-            text: '🎯 จัดการข้อมูลของคุณ',
-            actions: [
-              {
-                type: 'postback',
-                label: '🏠 หน้าแรก',
-                data: 'action=home&userId=' + userId
-              },
-              {
-                type: 'postback',
-                label: '� Dashboard',
-                data: 'action=dashboard&userId=' + userId
-              },
-              {
-                type: 'postback',
-                label: '� งบประมาณ',
-                data: 'action=budget&userId=' + userId
-              }
-            ]
+            text: '🎯 จัดการข้อมูลของคุณ',              actions: [
+                {
+                  type: 'postback',
+                  label: '🏠 หน้าแรก',
+                  data: 'action=home&userId=' + userId
+                },
+                {
+                  type: 'postback',
+                  label: '📊 ภาพรวม',
+                  data: 'action=dashboard&userId=' + userId
+                },
+                {
+                  type: 'postback',
+                  label: '📊 งบประมาณ',
+                  data: 'action=budget&userId=' + userId
+                }
+              ]
           }
         }
       ];
@@ -737,7 +643,7 @@ export class LineService {
                 },
                 {
                   type: 'postback',
-                  label: '� Dashboard',
+                  label: '📊 ภาพรวม',
                   data: 'action=dashboard&userId=' + userId
                 },
                 {

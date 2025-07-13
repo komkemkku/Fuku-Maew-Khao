@@ -114,26 +114,26 @@ export async function POST(req: NextRequest) {
                     
                     switch (action) {
                         case 'dashboard':
-                            // เปิด dashboard URL - ใช้ LINE User ID โดยตรง
+                            // เปิด dashboard URL - ภาพรวมข้อมูลผู้ใช้
                             responseMessages = [{
                                 type: 'text',
-                                text: `📊 Dashboard\n\n🔗 กดลิงก์นี้เพื่อดู Dashboard แบบละเอียด:\nhttps://fukuneko-app.vercel.app/dashboard?lineUserId=${userId}&auto=true`
+                                text: `📊 ภาพรวมข้อมูลของคุณ\n\n🔗 กดลิงก์นี้เพื่อดูภาพรวมแบบละเอียด:\n${process.env.APP_URL || 'https://fukuneko-app.vercel.app'}/dashboard?lineUserId=${userId}&auto=true`
                             }];
                             break;
                             
                         case 'subscription':
-                            // เปิดหน้า subscription
+                            // เปิดหน้า premium package
                             responseMessages = [{
                                 type: 'text',
-                                text: `💎 Premium Subscription\n\n🔗 กดลิงก์นี้เพื่ออัปเกรดเป็น Premium:\nhttps://fukuneko-app.vercel.app/subscription?lineUserId=${userId}&auto=true`
+                                text: `💎 แพคเกจ Premium\n\n🐱 แมวน้อย (ฟรี) - 100 รายการ/เดือน\n👑 แมวโปร (฿99/เดือน) - ไม่จำกัด + ฟีเจอร์พิเศษ\n\n🔗 กดลิงก์นี้เพื่อดูรายละเอียดและอัปเกรด:\n${process.env.APP_URL || 'https://fukuneko-app.vercel.app'}/premium?lineUserId=${userId}&auto=true`
                             }];
                             break;
                             
                         case 'home':
-                            // เปิดหน้าแรก
+                            // เปิดหน้าแรก - index page
                             responseMessages = [{
                                 type: 'text',
-                                text: `🏠 หน้าแรก Fuku Neko\n\n🔗 กดลิงก์นี้เพื่อดูข้อมูลและแพคเกจ:\nhttps://fukuneko-app.vercel.app/?lineUserId=${userId}&auto=true`
+                                text: `🏠 หน้าแรก Fuku Neko\n\n🔗 กดลิงก์นี้เพื่อดูข้อมูลทั่วไปและแพคเกจ:\n${process.env.APP_URL || 'https://fukuneko-app.vercel.app'}/?lineUserId=${userId}&auto=true`
                             }];
                             break;
                             

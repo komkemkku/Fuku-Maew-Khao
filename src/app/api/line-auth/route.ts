@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseService } from '@/lib/database';
+import { cookies } from 'next/headers';
 
 // Verify LINE token and get user info
 async function verifyLineToken(accessToken: string) {
@@ -80,39 +81,43 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const lineUserId = searchParams.get('lineUserId');
-
-    if (!lineUserId) {
-      return NextResponse.json(
-        { error: 'LINE user ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Get user from database
-    const user = await DatabaseService.getUserByLineId(lineUserId);
     
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: user.id,
-        lineUserId: user.line_user_id,
-        name: user.display_name,
-        subscription: user.subscription_plan
+    // ตรวจสอบ cookie
+    if (searchParams.get('checkCookie') === 'true') {
+      const cookieStore = await cookies();
+      const lineUserId = cookieStore.get('line_user_id')?.value;
+      
+      if (lineUserId) {
+        return NextResponse.json({ lineUserId });
+      } else {
+        return NextResponse.json({ error: 'No user session found' }, { status: 401 });
       }
-    });
-
+    }
+    
+    // ตรวจสอบผู้ใช้จาก lineUserId
+    const lineUserId = searchParams.get('lineUserId');
+    if (lineUserId) {
+      const user = await DatabaseService.getUserByLineId(lineUserId);
+      if (user) {
+        return NextResponse.json({
+          success: true,
+          user: {
+            id: user.id,
+            lineUserId: user.line_user_id,
+            name: user.display_name,
+            subscription: user.subscription_plan
+          }
+        });
+      } else {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+    }
+    
+    return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
   } catch (error) {
-    console.error('Get user error:', error);
+    console.error('GET /api/line-auth error:', error);
     return NextResponse.json(
-      { error: 'Failed to get user info' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

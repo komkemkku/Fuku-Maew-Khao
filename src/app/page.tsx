@@ -1,6 +1,85 @@
+'use client';
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+interface User {
+  id: string;
+  lineUserId: string;
+  name: string;
+  subscription: string;
+}
 
 export default function Home() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function getUserInfo() {
+      try {
+        // ตรวจสอบ message จาก URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const messageParam = urlParams.get('message');
+        const errorParam = urlParams.get('error');
+        
+        if (messageParam) {
+          setMessage(messageParam);
+        }
+        if (errorParam) {
+          setMessage('เกิดข้อผิดพลาดในการเข้าถึง กรุณาใช้งานผ่าน LINE Bot');
+        }
+        
+        // ตรวจสอบ LINE User ID จาก URL parameter หรือ cookie
+        const lineUserIdFromUrl = urlParams.get('lineUserId');
+        
+        let authenticatedUserId = null;
+        
+        if (lineUserIdFromUrl) {
+          // มี LINE User ID จาก URL (มาจาก LINE Bot)
+          authenticatedUserId = lineUserIdFromUrl;
+        } else {
+          // ลองดึงจาก cookie
+          try {
+            const response = await fetch('/api/line-auth?checkCookie=true');
+            if (response.ok) {
+              const data = await response.json();
+              authenticatedUserId = data.lineUserId;
+            }
+          } catch (error) {
+            // ไม่สามารถเข้าถึง cookie ได้
+            console.log('No user session found');
+          }
+        }
+        
+        if (authenticatedUserId) {
+          // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
+          try {
+            const userResponse = await fetch(`/api/line-auth?lineUserId=${authenticatedUserId}`);
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              setCurrentUser(userData.user);
+            } else {
+              // ถ้าไม่พบผู้ใช้ สร้าง user object พื้นฐาน
+              const user: User = {
+                id: authenticatedUserId,
+                lineUserId: authenticatedUserId,
+                name: 'LINE User',
+                subscription: 'free'
+              };
+              setCurrentUser(user);
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Error getting user info:', error);
+      }
+    }
+
+    getUserInfo();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section - สีฟ้าล้วน ไม่ผสม */}
@@ -11,6 +90,24 @@ export default function Home() {
           <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-white rounded-full"></div>
         </div>
         <div className="relative container mx-auto px-4 py-20 lg:py-32">
+          {/* แสดงข้อความต้อนรับหรือแจ้งเตือน */}
+          {message && (
+            <div className="mb-8 p-4 bg-white/20 rounded-lg text-center">
+              <p className="text-white">{message}</p>
+            </div>
+          )}
+          
+          {currentUser && (
+            <div className="mb-8 p-4 bg-white/20 rounded-lg text-center">
+              <p className="text-white">
+                🐱 สวัสดี {currentUser.name}! ยินดีต้อนรับสู่ Fuku Neko
+              </p>
+              <p className="text-blue-100 text-sm mt-1">
+                สถานะ: {currentUser.subscription === 'premium' ? '👑 Premium' : '🆓 Free'}
+              </p>
+            </div>
+          )}
+          
           <div className="text-center mb-12 sm:mb-16">
             <div className="mb-6">
               <span className="text-6xl sm:text-8xl">🐱</span>
@@ -23,14 +120,24 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
-                href="/dashboard"
+                href={currentUser ? `/dashboard?lineUserId=${currentUser.lineUserId}&auto=true` : "/dashboard"}
                 className="bg-white hover:bg-blue-50 text-blue-600 px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
-                เริ่มใช้งานฟรี 🐾
+                {currentUser ? 'ดูภาพรวมข้อมูล 📊' : 'เริ่มใช้งานฟรี 🐾'}
               </Link>
-              <button className="px-8 py-4 border-2 border-blue-200 text-blue-100 rounded-full text-lg font-semibold hover:bg-blue-500 transition-all duration-300 hover:scale-105">
-                ดูตัวอย่าง 👀
-              </button>
+              {currentUser && (
+                <Link
+                  href={`/premium?lineUserId=${currentUser.lineUserId}&auto=true`}
+                  className="px-8 py-4 border-2 border-blue-200 text-blue-100 rounded-full text-lg font-semibold hover:bg-blue-500 transition-all duration-300 hover:scale-105"
+                >
+                  ดูแพคเกจ Premium 👑
+                </Link>
+              )}
+              {!currentUser && (
+                <button className="px-8 py-4 border-2 border-blue-200 text-blue-100 rounded-full text-lg font-semibold hover:bg-blue-500 transition-all duration-300 hover:scale-105">
+                  ดูตัวอย่าง 👀
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -254,14 +361,24 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
-                href="/dashboard"
+                href={currentUser ? `/dashboard?lineUserId=${currentUser.lineUserId}&auto=true` : "/dashboard"}
                 className="bg-white text-blue-600 px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 hover:bg-blue-50"
               >
-                เริ่มใช้งานฟรี ตอนนี้เลย! 🚀
+                {currentUser ? 'ดูภาพรวมข้อมูล 📊' : 'เริ่มใช้งานฟรี ตอนนี้เลย! 🚀'}
               </Link>
-              <button className="px-8 py-4 border-2 border-white text-white rounded-full text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                ดูวิธีใช้งาน 📖
-              </button>
+              {currentUser && (
+                <Link
+                  href={`/premium?lineUserId=${currentUser.lineUserId}&auto=true`}
+                  className="px-8 py-4 border-2 border-white text-white rounded-full text-lg font-semibold hover:bg-white/10 transition-all duration-300"
+                >
+                  ดูแพคเกจ Premium 👑
+                </Link>
+              )}
+              {!currentUser && (
+                <button className="px-8 py-4 border-2 border-white text-white rounded-full text-lg font-semibold hover:bg-white/10 transition-all duration-300">
+                  ดูวิธีใช้งาน 📖
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -24,18 +24,38 @@ export default function DashboardPage() {
   useEffect(() => {
     async function initializeAuth() {
       try {
-        // Initialize LIFF first
-        await AuthService.initializeLiff();
-        const isInLine = AuthService.isInLineApp();
-        setIsLineEnv(isInLine);
-
-        // Get current user
-        const user = await AuthService.getCurrentUser();
-        setCurrentUser(user);
+        // ตรวจสอบ LINE User ID จาก URL parameter หรือ cookie
+        const urlParams = new URLSearchParams(window.location.search);
+        const lineUserIdFromUrl = urlParams.get('lineUserId');
         
-        // If no user and not in development, show demo selection
-        if (!user && process.env.NODE_ENV === 'development') {
-          setShowUserSelect(true);
+        let authenticatedUserId = null;
+        
+        if (lineUserIdFromUrl) {
+          // มี LINE User ID จาก URL (มาจาก LINE Bot)
+          authenticatedUserId = lineUserIdFromUrl;
+        } else {
+          // ลองดึงจาก cookie
+          const response = await fetch('/api/line-auth?checkCookie=true');
+          if (response.ok) {
+            const data = await response.json();
+            authenticatedUserId = data.lineUserId;
+          }
+        }
+        
+        if (authenticatedUserId) {
+          // สร้าง user object จาก LINE User ID
+          const user: User = {
+            id: authenticatedUserId,
+            lineUserId: authenticatedUserId,
+            name: 'LINE User',
+            subscription: 'free'
+          };
+          setCurrentUser(user);
+        } else {
+          // ถ้าไม่มี authentication ในโหมดพัฒนา ให้แสดงหน้าเลือกผู้ใช้
+          if (process.env.NODE_ENV === 'development') {
+            setShowUserSelect(true);
+          }
         }
       } catch (error) {
         console.error('Auth initialization failed:', error);
