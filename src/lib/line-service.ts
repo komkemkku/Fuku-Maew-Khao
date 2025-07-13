@@ -451,13 +451,13 @@ export class LineService {
             actions: [
               {
                 type: 'postback',
-                label: '📊 Dashboard',
-                data: 'action=dashboard&userId=' + userId
+                label: '🏠 หน้าแรก',
+                data: 'action=home&userId=' + userId
               },
               {
                 type: 'postback',
-                label: '📂 หมวดหมู่',
-                data: 'action=categories&userId=' + userId
+                label: '� Dashboard',
+                data: 'action=dashboard&userId=' + userId
               },
               {
                 type: 'postback',
@@ -497,13 +497,13 @@ export class LineService {
               actions: [
                 {
                   type: 'postback',
-                  label: '📊 Dashboard',
-                  data: 'action=dashboard&userId=' + userId
+                  label: '🏠 หน้าแรก',
+                  data: 'action=home&userId=' + userId
                 },
                 {
                   type: 'postback',
-                  label: '💰 งบประมาณ',
-                  data: 'action=budget&userId=' + userId
+                  label: '� Dashboard',
+                  data: 'action=dashboard&userId=' + userId
                 },
                 {
                   type: 'postback',
@@ -535,18 +535,18 @@ export class LineService {
             actions: [
               {
                 type: 'postback',
-                label: '📊 Dashboard',
+                label: '🏠 หน้าแรก',
+                data: 'action=home&userId=' + userId
+              },
+              {
+                type: 'postback',
+                label: '� Dashboard',
                 data: 'action=dashboard&userId=' + userId
               },
               {
                 type: 'postback',
-                label: '💰 งบประมาณ',
+                label: '� งบประมาณ',
                 data: 'action=budget&userId=' + userId
-              },
-              {
-                type: 'postback',
-                label: '💎 Premium',
-                data: 'action=subscription&userId=' + userId
               }
             ]
           }
@@ -585,18 +585,18 @@ export class LineService {
               actions: [
                 {
                   type: 'postback',
-                  label: '📊 Dashboard',
+                  label: '🏠 หน้าแรก',
+                  data: 'action=home&userId=' + userId
+                },
+                {
+                  type: 'postback',
+                  label: '� Dashboard',
                   data: 'action=dashboard&userId=' + userId
                 },
                 {
                   type: 'postback',
-                  label: '📂 หมวดหมู่',
+                  label: '� หมวดหมู่',
                   data: 'action=categories&userId=' + userId
-                },
-                {
-                  type: 'postback',
-                  label: '💎 Premium',
-                  data: 'action=subscription&userId=' + userId
                 }
               ]
             }
@@ -638,18 +638,18 @@ export class LineService {
             actions: [
               {
                 type: 'postback',
-                label: '📊 Dashboard',
+                label: '🏠 หน้าแรก',
+                data: 'action=home&userId=' + userId
+              },
+              {
+                type: 'postback',
+                label: '� Dashboard',
                 data: 'action=dashboard&userId=' + userId
               },
               {
                 type: 'postback',
-                label: '📂 หมวดหมู่',
+                label: '� หมวดหมู่',
                 data: 'action=categories&userId=' + userId
-              },
-              {
-                type: 'postback',
-                label: '💎 Premium',
-                data: 'action=subscription&userId=' + userId
               }
             ]
           }

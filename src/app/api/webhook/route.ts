@@ -114,10 +114,10 @@ export async function POST(req: NextRequest) {
                     
                     switch (action) {
                         case 'dashboard':
-                            // เปิด dashboard URL
+                            // เปิด dashboard URL - ใช้ LINE User ID โดยตรง
                             responseMessages = [{
                                 type: 'text',
-                                text: `📊 Dashboard\n\n🔗 กดลิงก์นี้เพื่อดู Dashboard แบบละเอียด:\nhttps://fukuneko-app.vercel.app/dashboard?userId=${userId}&utm_source=line_bot`
+                                text: `📊 Dashboard\n\n🔗 กดลิงก์นี้เพื่อดู Dashboard แบบละเอียด:\nhttps://fukuneko-app.vercel.app/dashboard?lineUserId=${userId}&auto=true`
                             }];
                             break;
                             
@@ -125,7 +125,15 @@ export async function POST(req: NextRequest) {
                             // เปิดหน้า subscription
                             responseMessages = [{
                                 type: 'text',
-                                text: `💎 Premium Subscription\n\n🔗 กดลิงก์นี้เพื่ออัปเกรดเป็น Premium:\nhttps://fukuneko-app.vercel.app/subscription?userId=${userId}&utm_source=line_bot`
+                                text: `💎 Premium Subscription\n\n🔗 กดลิงก์นี้เพื่ออัปเกรดเป็น Premium:\nhttps://fukuneko-app.vercel.app/subscription?lineUserId=${userId}&auto=true`
+                            }];
+                            break;
+                            
+                        case 'home':
+                            // เปิดหน้าแรก
+                            responseMessages = [{
+                                type: 'text',
+                                text: `🏠 หน้าแรก Fuku Neko\n\n🔗 กดลิงก์นี้เพื่อดูข้อมูลและแพคเกจ:\nhttps://fukuneko-app.vercel.app/?lineUserId=${userId}&auto=true`
                             }];
                             break;
                             
