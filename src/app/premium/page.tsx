@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { MobileNavigation } from '@/components/MobileNavigation';
+import Link from 'next/link';
 
 interface User {
   id: string;
@@ -98,119 +100,335 @@ export default function PremiumPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-blue-500">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            🐱 Fuku Neko Premium
-          </h1>
-          <p className="text-xl text-white/90">
-            ปลดล็อคความสามารถเต็มรูปแบบของฟูกุ
-          </p>
-          {currentUser && (
-            <div className="mt-4 bg-white/20 rounded-lg p-4 inline-block">
-              <p className="text-white">
-                สถานะปัจจุบัน: {currentUser.subscription === 'premium' ? '👑 Premium' : '🆓 Free'}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <MobileNavigation />
+      
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700">
+        {/* Background Elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full animate-pulse"></div>
+          <div className="absolute top-32 right-20 w-24 h-24 bg-white rounded-full animate-bounce"></div>
+          <div className="absolute bottom-20 left-1/4 w-16 h-16 bg-white rounded-full animate-pulse delay-1000"></div>
+          <div className="absolute bottom-32 right-1/3 w-20 h-20 bg-white rounded-full animate-bounce delay-500"></div>
+        </div>
+        
+        <div className="relative container mx-auto px-4 py-16 lg:py-24">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Premium Badge */}
+            <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white mb-6">
+              <span className="text-2xl mr-2">👑</span>
+              <span className="font-semibold">Fuku Neko Premium</span>
+            </div>
+            
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+              ปลดล็อกศักยภาพ
+              <br />
+              <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
+                การเงินสุดพรีเมียม
+              </span>
+            </h1>
+            
+            <p className="text-lg sm:text-xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+              เติมเต็มประสบการณ์การจัดการเงินด้วยฟีเจอร์พิเศษที่จะช่วยให้คุณควบคุมการเงินได้อย่างมืออาชีพ
+            </p>
+
+            {/* Status Badge */}
+            {currentUser && (
+              <div className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm rounded-xl text-white mb-8">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-400 rounded-full mr-3 animate-pulse"></div>
+                  <span className="font-medium">สถานะปัจจุบัน: </span>
+                  <span className="ml-2 font-bold">
+                    {currentUser.subscription === 'premium' ? '👑 Premium Member' : '🆓 Free Member'}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Features Comparison Section */}
+      <div className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+              เปรียบเทียบแผนการใช้งาน
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              เลือกแผนที่เหมาะกับคุณ เริ่มฟรีได้เลย หรืออัปเกรดเพื่อฟีเจอร์เต็มรูปแบบ
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Free Plan */}
+            <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-8 relative">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                  <span className="text-2xl">🆓</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">แผนฟรี</h3>
+                <div className="text-4xl font-bold text-gray-900 mb-2">
+                  0 บาท
+                </div>
+                <p className="text-gray-600">ใช้งานได้ตลอดไป</p>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-gray-700">บันทึกรายการ <strong>500 รายการ/เดือน</strong></span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-gray-700">หมวดหมู่ <strong>15 หมวด</strong></span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-gray-700">รายงานพื้นฐาน + กราฟ</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-gray-700">LINE Bot + รูปแมวฟรี</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-gray-700">การจัดหมวดหมู่อัตโนมัติ</span>
+                </li>
+              </ul>
+
+              <button
+                disabled={currentUser?.subscription === 'free'}
+                className={`w-full py-4 px-6 rounded-lg font-semibold transition-all duration-300 ${
+                  currentUser?.subscription === 'free'
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-gray-600 text-white hover:bg-gray-700 hover:shadow-lg'
+                }`}
+              >
+                {currentUser?.subscription === 'free' ? '✓ แผนปัจจุบัน' : 'เริ่มใช้งานฟรี'}
+              </button>
+            </div>
+
+            {/* Premium Plan */}
+            <div className="bg-gradient-to-br from-blue-600 to-purple-700 border-2 border-blue-500 rounded-2xl p-8 relative shadow-2xl">
+              {/* Recommended Badge */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                  ⭐ แนะนำ
+                </div>
+              </div>
+
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
+                  <span className="text-2xl">👑</span>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">แผนพรีเมียม</h3>
+                <div className="text-4xl font-bold text-white mb-2">
+                  99 บาท
+                </div>
+                <p className="text-blue-100">ต่อเดือน</p>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-white">ทุกอย่างในแผนฟรี</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-white">บันทึกรายการ <strong>ไม่จำกัด</strong></span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-white">หมวดหมู่ <strong>ไม่จำกัด</strong></span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-white">รายงานขั้นสูง + AI วิเคราะห์</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-white">ส่งออกข้อมูล Excel/PDF</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-white">การแจ้งเตือนอัตโนมัติ</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-white">ความปลอดภัยขั้นสูง</span>
+                </li>
+              </ul>
+
+              <button
+                onClick={handleUpgrade}
+                disabled={loading || currentUser?.subscription === 'premium'}
+                className={`w-full py-4 px-6 rounded-lg font-semibold transition-all duration-300 ${
+                  currentUser?.subscription === 'premium'
+                    ? 'bg-white/20 text-white cursor-not-allowed'
+                    : 'bg-white text-blue-600 hover:bg-gray-50 hover:shadow-lg transform hover:scale-105'
+                } ${loading ? 'animate-pulse' : ''}`}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-2"></div>
+                    กำลังอัปเกรด...
+                  </div>
+                ) : currentUser?.subscription === 'premium' ? (
+                  '✓ คุณเป็นสมาชิก Premium แล้ว'
+                ) : (
+                  '🚀 อัปเกรดเป็น Premium'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Benefits Section */}
+      <div className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+              ทำไมต้อง Premium?
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              ปลดล็อกฟีเจอร์พิเศษที่จะเปลี่ยนวิธีจัดการเงินของคุณให้ดีขึ้น
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-white text-xl">📊</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">รายงานขั้นสูง</h3>
+              <p className="text-gray-600">
+                วิเคราะห์รูปแบบการใช้จ่าย พร้อม AI ที่จะแนะนำวิธีประหยัดเงิน
               </p>
             </div>
-          )}
-        </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-white mb-2">
-                🐱 ฟรี
-              </h3>
-              <div className="text-3xl font-bold text-white">0 บาท</div>
-              <p className="text-white/80">ตลอดไป</p>
+            <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-white text-xl">🔔</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">แจ้งเตือนอัตโนมัติ</h3>
+              <p className="text-gray-600">
+                เตือนเมื่อใช้เงินเกินงบ หรือใกล้วันครบกำหนดชำระบิล
+              </p>
             </div>
-            
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-center text-white/90">
-                <span className="text-green-400 mr-3">✓</span>
-                บันทึกรายการ 100 รายการ/เดือน
-              </li>
-              <li className="flex items-center text-white/90">
-                <span className="text-green-400 mr-3">✓</span>
-                หมวดหมู่ 15 หมวด
-              </li>
-              <li className="flex items-center text-white/90">
-                <span className="text-green-400 mr-3">✓</span>
-                รูปแมวฟรี & คำทำนาย
-              </li>
-              <li className="flex items-center text-white/90">
-                <span className="text-green-400 mr-3">✓</span>
-                รายงานพื้นฐาน
-              </li>
-            </ul>
 
-            <button
-              disabled
-              className="w-full py-3 px-6 rounded-xl bg-gray-500 text-white font-semibold cursor-not-allowed"
-            >
-              {currentUser?.subscription === 'free' ? 'แพลนปัจจุบัน' : 'แพลนฟรี'}
-            </button>
-          </div>
-
-          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-8 border-2 border-yellow-300">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-white mb-2">
-                👑 พรีเมียม
-              </h3>
-              <div className="text-3xl font-bold text-white">99 บาท</div>
-              <p className="text-white/90">/เดือน</p>
+            <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-white text-xl">📁</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">ส่งออกข้อมูล</h3>
+              <p className="text-gray-600">
+                ดาวน์โหลดรายงานเป็น Excel หรือ PDF สำหรับจัดเก็บหรือส่งให้ผู้อื่น
+              </p>
             </div>
-            
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-center text-white">
-                <span className="text-green-200 mr-3">✓</span>
-                ทุกอย่างในแพลนฟรี
-              </li>
-              <li className="flex items-center text-white">
-                <span className="text-green-200 mr-3">✓</span>
-                บันทึกรายการไม่จำกัด
-              </li>
-              <li className="flex items-center text-white">
-                <span className="text-green-200 mr-3">✓</span>
-                หมวดหมู่ไม่จำกัด
-              </li>
-              <li className="flex items-center text-white">
-                <span className="text-green-200 mr-3">✓</span>
-                อ่านสลิปอัตโนมัติ (เร็วๆ นี้)
-              </li>
-              <li className="flex items-center text-white">
-                <span className="text-green-200 mr-3">✓</span>
-                รายงานขั้นสูง + กราฟ
-              </li>
-              <li className="flex items-center text-white">
-                <span className="text-green-200 mr-3">✓</span>
-                ส่งออกข้อมูล
-              </li>
-              <li className="flex items-center text-white">
-                <span className="text-green-200 mr-3">✓</span>
-                ไม่มีโฆษณา
-              </li>
-            </ul>
-
-            <button
-              onClick={handleUpgrade}
-              disabled={loading || currentUser?.subscription === 'premium'}
-              className="w-full py-3 px-6 rounded-xl bg-white text-orange-600 font-bold hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? '🔄 กำลังดำเนินการ...' : 
-               currentUser?.subscription === 'premium' ? '✅ อัปเกรดแล้ว' : '🚀 อัปเกรดเลย!'}
-            </button>
           </div>
         </div>
+      </div>
 
-        <div className="mt-12 text-center">
-          <a
-            href="https://line.me/R/ti/p/@fukuneko"
-            className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-colors"
-          >
-            🔙 กลับไป LINE Bot
-          </a>
+      {/* CTA Section */}
+      <div className="py-16 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+              พร้อมที่จะเป็นมืออาชีพหรือยัง?
+            </h2>
+            <p className="text-lg text-white/90 mb-8">
+              เข้าร่วมกับผู้ใช้พรีเมียมหลายร้อยคนที่ไว้วางใจ Fuku Neko ในการจัดการการเงิน
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              {currentUser ? (
+                <>
+                  <Link
+                    href={`/dashboard?lineUserId=${currentUser.lineUserId}&auto=true`}
+                    className="bg-white text-blue-600 px-8 py-3 rounded-lg text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  >
+                    กลับไป Dashboard
+                  </Link>
+                  {currentUser.subscription !== 'premium' && (
+                    <button
+                      onClick={handleUpgrade}
+                      disabled={loading}
+                      className="px-8 py-3 border-2 border-white text-white rounded-lg text-base font-semibold hover:bg-white/10 transition-all duration-300"
+                    >
+                      {loading ? 'กำลังอัปเกรด...' : 'อัปเกรดตอนนี้'}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <Link
+                  href="/dashboard"
+                  className="bg-white text-blue-600 px-8 py-3 rounded-lg text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                >
+                  เริ่มใช้งานเลย
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="bg-white py-8 border-t border-gray-200">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-gray-600">
+            มีคำถาม? ติดต่อเราผ่าน LINE Bot หรือส่งข้อความมาที่ 
+            <span className="font-semibold text-blue-600"> Fuku Neko Official</span>
+          </p>
         </div>
       </div>
     </div>

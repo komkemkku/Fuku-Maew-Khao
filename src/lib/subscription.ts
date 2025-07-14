@@ -11,7 +11,7 @@ export class SubscriptionService {
       smartNotifications: false,
       noAds: false,
       categoryLimit: 15, // จากการตั้งค่าเริ่มต้น
-      transactionLimit: 100, // จำกัด 100 รายการต่อเดือน
+      transactionLimit: 500, // จำกัด 500 รายการต่อเดือน
       budgetAlerts: false,
       exportData: false,
       prioritySupport: false
@@ -62,7 +62,7 @@ export class SubscriptionService {
         features: [
           '✅ จัดการรายรับ-รายจ่ายพื้นฐาน',
           '✅ หมวดหมู่เริ่มต้น 15 หมวด',
-          '✅ บันทึกรายการ 100 รายการ/เดือน',
+          '✅ บันทึกรายการ 500 รายการ/เดือน',
           '✅ ดูสรุปรายเดือน',
           '✅ แชทกับฟูกุแมว',
           '❌ อ่านสลิปอัตโนมัติ',
@@ -135,5 +135,30 @@ export class SubscriptionService {
       transactionsExceeded,
       message: message || undefined
     };
+  }
+
+  /**
+   * Check if user has premium subscription from database
+   */
+  static async checkUserSubscription(lineUserId: string): Promise<'free' | 'premium'> {
+    try {
+      // ตรวจสอบจากฐานข้อมูลหรือ API
+      const response = await fetch(`/api/subscription/check?lineUserId=${lineUserId}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.plan || 'free';
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+    return 'free'; // Default to free if check fails
+  }
+
+  /**
+   * Get user plan with fallback
+   */
+  static async getUserPlan(lineUserId?: string): Promise<'free' | 'premium'> {
+    if (!lineUserId) return 'free';
+    return await this.checkUserSubscription(lineUserId);
   }
 }

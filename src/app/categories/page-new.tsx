@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { MobileNavigation } from '@/components/MobileNavigation';
-import { SubscriptionService } from '@/lib/subscription';
 import Link from 'next/link';
 
 interface Category {
@@ -44,9 +43,7 @@ const AVAILABLE_ICONS = [
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userPlan, setUserPlan] = useState<'free' | 'premium'>('free');
   const [showForm, setShowForm] = useState(false);
-  const [showLimitWarning, setShowLimitWarning] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState<CategoryFormData>({
     name: '',
@@ -147,20 +144,6 @@ export default function CategoriesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // ตรวจสอบขีดจำกัดของแผนฟรีเมื่อเพิ่มหมวดหมู่ใหม่
-    if (!editingCategory && userPlan === 'free') {
-      const limits = await SubscriptionService.checkLimits(userPlan, {
-        categories: categories.length,
-        monthlyTransactions: 0 // ไม่เกี่ยวข้องกับการเพิ่มหมวดหมู่
-      });
-      
-      if (limits.categoriesExceeded) {
-        setShowLimitWarning(true);
-        return;
-      }
-    }
-    
     // Handle form submission (create/update category)
     console.log('Form submitted:', formData);
     setShowForm(false);
@@ -234,63 +217,16 @@ export default function CategoriesPage() {
             </div>
             <button
               onClick={() => {
-                if (userPlan === 'free' && categories.length >= 15) {
-                  setShowLimitWarning(true);
-                } else {
-                  setShowForm(true);
-                  setEditingCategory(null);
-                  resetForm();
-                }
+                setShowForm(true);
+                setEditingCategory(null);
+                resetForm();
               }}
-              className={`mt-4 sm:mt-0 px-6 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                userPlan === 'free' && categories.length >= 15
-                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-              disabled={userPlan === 'free' && categories.length >= 15}
+              className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
             >
-              {userPlan === 'free' && categories.length >= 15 ? '🚫 ครบโควต้า' : 'เพิ่มหมวดหมู่'}
+              เพิ่มหมวดหมู่
             </button>
           </div>
         </div>
-
-        {/* Free Plan Quota Banner */}
-        {userPlan === 'free' && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-blue-100 mr-4">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-blue-800">แผนฟรี - หมวดหมู่</h3>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <div className="w-32 bg-blue-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
-                        style={{width: `${Math.min((categories.length / 15) * 100, 100)}%`}}
-                      ></div>
-                    </div>
-                    <span className="text-sm font-medium text-blue-800">
-                      {categories.length}/15 หมวดหมู่
-                    </span>
-                  </div>
-                  <p className="text-xs text-blue-600 mt-1">
-                    {categories.length >= 15 ? '⚠️ ใช้ครบโควต้าแล้ว' : `เหลืออีก ${15 - categories.length} หมวดหมู่`}
-                  </p>
-                </div>
-              </div>
-              <Link
-                href="/premium"
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm"
-              >
-                🚀 อัปเกรด
-              </Link>
-            </div>
-          </div>
-        )}
 
         {/* Filter Tabs */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
@@ -539,55 +475,6 @@ export default function CategoriesPage() {
                     </button>
                   </div>
                 </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Category Limit Warning Modal */}
-        {showLimitWarning && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="p-3 rounded-full bg-blue-100 mr-4">
-                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900">ถึงขีดจำกัดหมวดหมู่แล้ว!</h2>
-                </div>
-                
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                  <h3 className="font-bold text-blue-800 mb-2">🚫 หมวดหมู่เต็มแล้ว! (15/15)</h3>
-                  <p className="text-sm text-blue-700 mb-3">
-                    คุณใช้หมวดหมู่ครบโควต้าของแผนฟรีแล้ว
-                  </p>
-                  <div className="text-sm text-blue-700">
-                    <p className="font-medium mb-2">🌟 อัปเกรดเป็น Premium เพื่อรับ:</p>
-                    <ul className="list-disc list-inside space-y-1 text-xs">
-                      <li>📂 หมวดหมู่ไม่จำกัด</li>
-                      <li>📝 บันทึกรายการไม่จำกัด</li>
-                      <li>📊 รายงานขั้นสูง</li>
-                      <li>🚫 ไม่มีโฆษณา</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="flex flex-col space-y-3">
-                  <button
-                    onClick={() => window.open('/premium', '_blank')}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
-                  >
-                    🌟 อัปเกรดเป็น Premium
-                  </button>
-                  <button
-                    onClick={() => setShowLimitWarning(false)}
-                    className="w-full px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
-                  >
-                    ปิด
-                  </button>
-                </div>
               </div>
             </div>
           </div>

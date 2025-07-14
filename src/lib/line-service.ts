@@ -101,16 +101,41 @@ export class LineService {
       return [...correctionMessage, ...result];
     }
 
-    // คำสั่งดูสรุป - เพิ่มปุ่ม
+    // คำสั่งดูสรุป - ใช้เมธอดใหม่ที่มีรายละเอียดครบถ้วน
     if (['สรุป', 'summary', 'สรุง', 'สุรป', 'สู่รุป'].includes(normalizedText)) {
-      const result = await this.getSummaryMessageWithButtons(lineUserId);
+      const result = await this.getOverviewMessageWithButtons(lineUserId);
       return [...correctionMessage, ...result];
     }
 
-    // คำสั่งดูหมวดหมู่
-    if (['หมวดหมู่', 'categories', 'หมวดหมุ', 'หมวดมู', 'หมวดมุ'].includes(normalizedText)) {
-      const result = await this.getCategoriesMessageWithButtons(internalUserId);
+    // คำสั่งใหม่ตามความต้องการ - ภาพรวม
+    if (['ภาพรวม', 'overview', 'ภาพรวง', 'ภาพรบม', 'ภาบรวม'].includes(normalizedText)) {
+      const result = await this.getOverviewMessageWithButtons(lineUserId);
       return [...correctionMessage, ...result];
+    }
+
+    // คำสั่งใหม่ - หมวดหมู่ (ปรับปรุงใหม่)
+    if (['หมวดหมู่', 'categories', 'หมวดหมุ', 'หมวดมู', 'หมวดมุ'].includes(normalizedText)) {
+      return [...correctionMessage, ...this.getCategoriesNavigationMessage(lineUserId)];
+    }
+
+    // คำสั่งใหม่ - ประวัติ
+    if (['ประวัติ', 'history', 'transactions', 'ประวัต', 'ประวัตี', 'ประวติ'].includes(normalizedText)) {
+      return [...correctionMessage, ...this.getHistoryNavigationMessage(lineUserId)];
+    }
+
+    // คำสั่งใหม่ - ตั้งค่า
+    if (['ตั้งค่า', 'settings', 'ตังค่า', 'ตั้งคา', 'ตังคา'].includes(normalizedText)) {
+      return [...correctionMessage, ...this.getSettingsNavigationMessage(lineUserId)];
+    }
+
+    // คำสั่งใหม่ - แพคเกจ
+    if (['แพคเกจ', 'package', 'premium', 'แพคเกด', 'แพกเกจ', 'แพ็คเกจ'].includes(normalizedText)) {
+      return [...correctionMessage, ...this.getPackageNavigationMessage(lineUserId)];
+    }
+
+    // คำสั่งใหม่ - จดรายการ
+    if (['จดรายการ', 'record', 'จด', 'บันทึก', 'จรรายการ', 'จดรายกร'].includes(normalizedText)) {
+      return [...correctionMessage, ...this.getRecordGuidanceMessage()];
     }
 
     // คำสั่งดูงบประมาณ
@@ -1650,5 +1675,313 @@ export class LineService {
     } catch (error) {
       console.error('Error setting default Rich Menu:', error);
     }
+  }
+
+  // ⭐ เมธอดใหม่สำหรับภาพรวม
+  static async getOverviewMessageWithButtons(lineUserId: string): Promise<Message[]> {
+    try {
+      // ค้นหาผู้ใช้จาก LINE User ID หรือสร้างใหม่ถ้าไม่มี
+      let user = await DatabaseService.getUserByLineId(lineUserId);
+      if (!user) {
+        try {
+          user = await DatabaseService.createUser(lineUserId);
+        } catch (createError) {
+          console.error('Failed to create user:', createError);
+          return [{
+            type: 'text',
+            text: '❌ ไม่สามารถลงทะเบียนผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง'
+          }];
+        }
+      }
+
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear();
+
+      // สร้างวันที่เริ่มต้นและสิ้นสุดของเดือน
+      const startDate = new Date(currentYear, currentMonth - 1, 1);
+      const endDate = new Date(currentYear, currentMonth, 0);
+
+      const monthlyTransactions = await DatabaseService.getUserTransactions(user.id, startDate, endDate, 1000);
+      const categories = await DatabaseService.getUserCategories(user.id);
+
+      // คำนวณรายรับ-รายจ่าย แบบปลอดภัย
+      let totalIncome = 0;
+      let totalExpense = 0;
+
+      if (monthlyTransactions && monthlyTransactions.length > 0) {
+        totalIncome = monthlyTransactions
+          .filter((t: Transaction) => t.amount && t.amount > 0)
+          .reduce((sum: number, t: Transaction) => sum + (parseFloat(t.amount.toString()) || 0), 0);
+
+        totalExpense = Math.abs(monthlyTransactions
+          .filter((t: Transaction) => t.amount && t.amount < 0)
+          .reduce((sum: number, t: Transaction) => sum + (parseFloat(t.amount.toString()) || 0), 0));
+      }
+
+      const balance = totalIncome - totalExpense;
+
+      // สรุปแต่ละหมวดหมู่พร้อมบอกงบประมาณ
+      const categoryMap = new Map<string, { total: number, count: number, budget?: number, type: string }>();
+      
+      monthlyTransactions.forEach((transaction: Transaction) => {
+        const category = categories.find(cat => cat.id === transaction.category_id);
+        const categoryName = category?.name || 'ไม่ระบุหมวดหมู่';
+        const categoryType = category?.type || 'expense';
+        const amount = Math.abs(parseFloat(transaction.amount?.toString() || '0'));
+        
+        if (!categoryMap.has(categoryName)) {
+          categoryMap.set(categoryName, { 
+            total: 0, 
+            count: 0,
+            budget: category?.budget_amount || undefined,
+            type: categoryType
+          });
+        }
+        
+        const categoryData = categoryMap.get(categoryName)!;
+        categoryData.total += amount;
+        categoryData.count += 1;
+      });
+
+      let summaryText = `📊 ภาพรวมการเงิน เดือน ${currentMonth}/${currentYear}\n\n`;
+      summaryText += `💰 รายรับ: +${(totalIncome || 0).toLocaleString()} บาท\n`;
+      summaryText += `💸 รายจ่าย: -${(totalExpense || 0).toLocaleString()} บาท\n`;
+      summaryText += `${balance >= 0 ? '💚' : '💔'} คงเหลือ: ${balance >= 0 ? '+' : ''}${(balance || 0).toLocaleString()} บาท\n\n`;
+
+      // แสดงรายละเอียดแต่ละหมวดหมู่
+      if (categoryMap.size > 0) {
+        summaryText += `📂 สรุปแต่ละหมวดหมู่:\n`;
+        
+        Array.from(categoryMap.entries())
+          .sort(([,a], [,b]) => b.total - a.total)
+          .slice(0, 8)
+          .forEach(([categoryName, data]) => {
+            const typeIcon = data.type === 'income' ? '💰' : '💸';
+            summaryText += `${typeIcon} ${categoryName}: ${data.total.toLocaleString()} บาท (${data.count} รายการ)`;
+            
+            if (data.budget && data.type === 'expense') {
+              const percentage = Math.round((data.total / data.budget) * 100);
+              const budgetStatus = percentage > 100 ? '⚠️ เกินงบ' : percentage > 80 ? '⚡ ใกล้หมด' : '✅ อยู่ในงบ';
+              summaryText += `\n   งบประมาณ: ${data.budget.toLocaleString()} บาท (ใช้ ${percentage}%) ${budgetStatus}`;
+            } else if (data.type === 'expense') {
+              summaryText += `\n   ⚪ ยังไม่ได้ตั้งงบประมาณ`;
+            }
+            summaryText += `\n`;
+          });
+      }
+
+      summaryText += `\n📈 รายการทั้งหมด: ${monthlyTransactions.length || 0} รายการ`;
+
+      return [
+        { type: 'text', text: summaryText },
+        {
+          type: 'template',
+          altText: 'เมนูการจัดการ',
+          template: {
+            type: 'buttons',
+            text: '🎯 ดูรายละเอียดเพิ่มเติม',
+            actions: [
+              {
+                type: 'uri',
+                label: '📊 Dashboard',
+                uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+              },
+              {
+                type: 'uri',
+                label: '📂 หมวดหมู่',
+                uri: `${process.env.APP_URL}/categories?lineUserId=${lineUserId}&auto=true`
+              },
+              {
+                type: 'uri',
+                label: '💎 Premium',
+                uri: `${process.env.APP_URL}/premium?lineUserId=${lineUserId}&auto=true`
+              }
+            ]
+          }
+        }
+      ];
+    } catch (error) {
+      console.error('Error getting overview:', error);
+      return [{
+        type: 'text',
+        text: '❌ ขณะนี้ไม่สามารถดึงข้อมูลภาพรวมได้ กรุณาลองใหม่ในภายหลัง\n\n🐱 ฟูกุขออภัยด้วยนะ!'
+      }];
+    }
+  }
+
+  // ⭐ เมธอดใหม่สำหรับการนำทางไปหมวดหมู่
+  static getCategoriesNavigationMessage(lineUserId: string): Message[] {
+    return [
+      {
+        type: 'text',
+        text: '📂 จัดการหมวดหมู่\n\n✨ คุณสมบัติ:\n• ดูหมวดหมู่ทั้งหมด\n• เพิ่มหมวดหมู่ใหม่\n• ตั้งงบประมาณ\n• ดูสถิติการใช้จ่าย\n\n💡 เคล็ดลับ: ตั้งงบประมาณเพื่อควบคุมการใช้จ่าย!'
+      },
+      {
+        type: 'template',
+        altText: 'เมนูหมวดหมู่',
+        template: {
+          type: 'buttons',
+          text: '🎯 เลือกการดำเนินการ',
+          actions: [
+            {
+              type: 'uri',
+              label: '📂 จัดการหมวดหมู่',
+              uri: `${process.env.APP_URL}/categories?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'uri',
+              label: '📊 Dashboard',
+              uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'postback',
+              label: '💰 ดูสรุป',
+              data: 'action=summary'
+            }
+          ]
+        }
+      }
+    ];
+  }
+
+  // ⭐ เมธอดใหม่สำหรับการนำทางไปประวัติ
+  static getHistoryNavigationMessage(lineUserId: string): Message[] {
+    return [
+      {
+        type: 'text',
+        text: '📜 ประวัติรายการ\n\n✨ คุณสมบัติ:\n• ดูรายการทั้งหมด\n• กรองตามวันที่\n• ค้นหารายการ\n• แก้ไขรายการ\n\n💡 เคล็ดลับ: ใช้ตัวกรองเพื่อหารายการที่ต้องการ!'
+      },
+      {
+        type: 'template',
+        altText: 'เมนูประวัติ',
+        template: {
+          type: 'buttons',
+          text: '🎯 เลือกการดำเนินการ',
+          actions: [
+            {
+              type: 'uri',
+              label: '📜 ดูประวัติ',
+              uri: `${process.env.APP_URL}/transactions?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'uri',
+              label: '📊 Dashboard',
+              uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'postback',
+              label: '💰 ดูสรุป',
+              data: 'action=summary'
+            }
+          ]
+        }
+      }
+    ];
+  }
+
+  // ⭐ เมธอดใหม่สำหรับการนำทางไปตั้งค่า
+  static getSettingsNavigationMessage(lineUserId: string): Message[] {
+    return [
+      {
+        type: 'text',
+        text: '⚙️ ตั้งค่าระบบ\n\n✨ คุณสมบัติ:\n• จัดการบัญชีผู้ใช้\n• ตั้งค่าการแจ้งเตือน\n• ส่งออกข้อมูล\n• ลบข้อมูล\n\n💡 เคล็ดลับ: ตั้งค่าการแจ้งเตือนเพื่อไม่ลืมบันทึกรายการ!'
+      },
+      {
+        type: 'template',
+        altText: 'เมนูตั้งค่า',
+        template: {
+          type: 'buttons',
+          text: '🎯 เลือกการดำเนินการ',
+          actions: [
+            {
+              type: 'uri',
+              label: '⚙️ ตั้งค่าระบบ',
+              uri: `${process.env.APP_URL}/settings?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'uri',
+              label: '📊 Dashboard',
+              uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'postback',
+              label: '💰 ดูสรุป',
+              data: 'action=summary'
+            }
+          ]
+        }
+      }
+    ];
+  }
+
+  // ⭐ เมธอดใหม่สำหรับการนำทางไปแพคเกจ
+  static getPackageNavigationMessage(lineUserId: string): Message[] {
+    return [
+      {
+        type: 'text',
+        text: '💎 แพคเกจ Premium\n\n✨ คุณสมบัติพิเศษ:\n• บันทึกรายการไม่จำกัด\n• หมวดหมู่ไม่จำกัด\n• สถิติขั้นสูง\n• การแจ้งเตือนอัตโนมัติ\n\n💰 ราคา: 99 บาท/เดือน'
+      },
+      {
+        type: 'template',
+        altText: 'เมนูแพคเกจ',
+        template: {
+          type: 'buttons',
+          text: '🎯 เลือกการดำเนินการ',
+          actions: [
+            {
+              type: 'uri',
+              label: '💎 ดูแพคเกจ',
+              uri: `${process.env.APP_URL}/premium?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'uri',
+              label: '📊 Dashboard',
+              uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'postback',
+              label: '📋 ดูสถานะ',
+              data: 'action=status'
+            }
+          ]
+        }
+      }
+    ];
+  }
+
+  // ⭐ เมธอดใหม่สำหรับคำแนะนำการจดรายการ
+  static getRecordGuidanceMessage(): Message[] {
+    return [
+      {
+        type: 'text',
+        text: '📝 วิธีบันทึกรายการ\n\n✨ รูปแบบที่รองรับ:\n• "50 ค่ากาแฟ" → รายจ่าย 50 บาท\n• "ค่าข้าว 80" → รายจ่าย 80 บาท\n• "500 เงินเดือน" → รายรับ 500 บาท\n• "จ่ายค่าไฟ 800" → รายจ่าย 800 บาท\n\n🤖 ระบบจะจัดหมวดหมู่ให้อัตโนมัติ!\n\n💡 เคล็ดลับ: ใส่รายละเอียดชัดเจน เพื่อให้ระบบจัดหมวดหมู่ได้แม่นยำ'
+      },
+      {
+        type: 'template',
+        altText: 'ตัวอย่างการบันทึก',
+        template: {
+          type: 'buttons',
+          text: '📚 ดูตัวอย่างเพิ่มเติม',
+          actions: [
+            {
+              type: 'postback',
+              label: '💸 ตัวอย่างรายจ่าย',
+              data: 'action=expense_examples'
+            },
+            {
+              type: 'postback',
+              label: '💰 ตัวอย่างรายรับ',
+              data: 'action=income_examples'
+            },
+            {
+              type: 'postback',
+              label: '📊 ดูสรุป',
+              data: 'action=summary'
+            }
+          ]
+        }
+      }
+    ];
   }
 }
