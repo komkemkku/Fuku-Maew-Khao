@@ -257,7 +257,7 @@ export default function CategoriesPage() {
         {/* Free Plan Quota Banner */}
         {userPlan === 'free' && (
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-blue-100 mr-4">
                   <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,12 +282,14 @@ export default function CategoriesPage() {
                   </p>
                 </div>
               </div>
-              <Link
-                href="/premium"
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm"
-              >
-                🚀 อัปเกรด
-              </Link>
+              <div className="flex-shrink-0">
+                <Link
+                  href="/premium"
+                  className="inline-block px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm"
+                >
+                  🚀 อัปเกรด
+                </Link>
+              </div>
             </div>
           </div>
         )}

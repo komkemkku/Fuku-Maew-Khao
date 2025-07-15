@@ -22,12 +22,19 @@ console.log('LINE Config initialized:', {
 
 const client = new Client(lineConfig);
 
+/**
+ * Helper function to get base URL with fallback
+ */
+function getBaseUrl(): string {
+  return process.env.APP_URL || process.env.VERCEL_URL || 'https://fuku-maew-khao.vercel.app';
+}
+
 export class LineService {
   /**
    * สร้าง Dashboard URL พร้อม user authentication
    */
   static getDashboardUrl(userId: string): string {
-    return `${process.env.APP_URL}/dashboard?user=${userId}&token=auto`;
+    return `${getBaseUrl()}/dashboard?user=${userId}&token=auto`;
   }
 
   static async handleMessage(userMessage: string, lineUserId: string, displayName?: string) {
@@ -101,15 +108,15 @@ export class LineService {
       return [...correctionMessage, ...result];
     }
 
-    // คำสั่งดูสรุป - ใช้เมธอดใหม่ที่มีรายละเอียดครบถ้วน
+    // คำสั่งดูสรุป - ส่งสรุปรายรับจ่ายในแต่ละหมวดพร้อมแสดงงบในแต่ละหมวด
     if (['สรุป', 'summary', 'สรุง', 'สุรป', 'สู่รุป'].includes(normalizedText)) {
       const result = await this.getOverviewMessageWithButtons(lineUserId);
       return [...correctionMessage, ...result];
     }
 
-    // คำสั่งใหม่ตามความต้องการ - ภาพรวม
+    // คำสั่งภาพรวม - เด้งไปที่หน้าเว็บภาพรวมของผู้ใช้งาน
     if (['ภาพรวม', 'overview', 'ภาพรวง', 'ภาพรบม', 'ภาบรวม'].includes(normalizedText)) {
-      const result = await this.getOverviewMessageWithButtons(lineUserId);
+      const result = await this.getDashboardNavigationMessage(lineUserId);
       return [...correctionMessage, ...result];
     }
 
@@ -364,7 +371,7 @@ export class LineService {
         "ถ้าเจ้าทาสอยากคุยเรื่องเงินหรือเรื่องแมว ฟูกุถนัดมากเลยนะ!"
       ];
 
-      const helpMessage = `🤔 ฟูกุไม่เข้าใจข้อความนี้เลย\n\n💡 ลองพิมพ์:\n• 'แมวฟรี' - ดูรูปแมวสุ่ม 🐱\n• 'แมวเลีย' - ขอคำทำนาย 🔮\n• 'สรุป' - ดูสรุปรายเดือน 📊\n• 'ช่วยเหลือ' - ดูคำสั่งทั้งหมด 📝\n• 'premium' - ดูแพคเกจ ${planEmoji}\n\n🤖 บันทึกรายรับ-จ่าย (จัดหมวดหมู่อัตโนมัติ!):\n• "50 ค่ากาแฟ" → รายจ่าย หมวด "เครื่องดื่ม"\n• "ซื้อข้าว 80" → รายจ่าย หมวด "อาหาร"\n• "500 เงินเดือน" → รายรับ หมวด "เงินเดือน"\n• "จ่ายค่าไฟ 800" → รายจ่าย หมวด "ค่าใช้จ่ายบ้าน"\n• ระบบจะจัดหมวดหมู่ให้อัตโนมัติ!\n\nหรือเจ้าทาสลองคุยเล่นกับฟูกุก็ได้นะ! 😸`;
+      const helpMessage = `🤔 ฟูกุไม่เข้าใจข้อความนี้เลย\n\n💡 ลองพิมพ์:\n• 'แมวฟรี' - ดูรูปแมวสุ่ม 🐱\n• 'แมวเลีย' - ขอคำทำนาย 🔮\n• 'สรุป' - ดูสรุปรายเดือนพร้อมงบประมาณ 📊\n• 'ภาพรวม' - เปิดหน้า Dashboard 📈\n• 'ช่วยเหลือ' - ดูคำสั่งทั้งหมด 📝\n• 'premium' - ดูแพคเกจ ${planEmoji}\n\n🤖 บันทึกรายรับ-จ่าย (จัดหมวดหมู่อัตโนมัติ!):\n• "50 ค่ากาแฟ" → รายจ่าย หมวด "เครื่องดื่ม"\n• "ซื้อข้าว 80" → รายจ่าย หมวด "อาหาร"\n• "500 เงินเดือน" → รายรับ หมวด "เงินเดือน"\n• "จ่ายค่าไฟ 800" → รายจ่าย หมวด "ค่าใช้จ่ายบ้าน"\n• ระบบจะจัดหมวดหมู่ให้อัตโนมัติ!\n\nหรือเจ้าทาสลองคุยเล่นกับฟูกุก็ได้นะ! 😸`;
 
       const randomMessages = [...baseMessages, helpMessage];
       return randomMessages[Math.floor(Math.random() * randomMessages.length)];
@@ -719,17 +726,17 @@ export class LineService {
               {
                 type: 'uri',
                 label: '📊 Dashboard',
-                uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+                uri: `${getBaseUrl()}/dashboard?lineUserId=${lineUserId}&auto=true`
               },
               {
                 type: 'uri',
                 label: '📂 หมวดหมู่',
-                uri: `${process.env.APP_URL}/categories?lineUserId=${lineUserId}&auto=true`
+                uri: `${getBaseUrl()}/categories?lineUserId=${lineUserId}&auto=true`
               },
               {
                 type: 'uri',
                 label: '💎 Premium',
-                uri: `${process.env.APP_URL}/premium?lineUserId=${lineUserId}&auto=true`
+                uri: `${getBaseUrl()}/premium?lineUserId=${lineUserId}&auto=true`
               }
             ]
           }
@@ -750,7 +757,6 @@ export class LineService {
       // ค้นหาผู้ใช้จาก LINE User ID หรือสร้างใหม่ถ้าไม่มี
       let user = await DatabaseService.getUserByLineId(lineUserId);
       if (!user) {
-        // Auto-register user ถ้ายังไม่มีในระบบ
         try {
           user = await DatabaseService.createUser(lineUserId);
         } catch (createError) {
@@ -1202,17 +1208,17 @@ export class LineService {
             {
               type: 'uri',
               label: '🏠 หน้าแรก',
-              uri: `${process.env.APP_URL}`
+              uri: `${getBaseUrl()}`
             },
             {
               type: 'uri',
               label: '📊 Dashboard',
-              uri: `${process.env.APP_URL}/dashboard`
+              uri: `${getBaseUrl()}/dashboard`
             },
             {
               type: 'uri',
               label: '💎 Premium',
-              uri: `${process.env.APP_URL}/premium`
+              uri: `${getBaseUrl()}/premium`
             }
           ]
         }
@@ -1511,13 +1517,13 @@ export class LineService {
             actions: [
               {
                 type: 'uri',
-                label: '�📱 จัดการสมาชิก',
-                uri: `${process.env.APP_URL}/subscription`
+                label: '📱 จัดการสมาชิก',
+                uri: `${getBaseUrl()}/subscription`
               },
               {
                 type: 'uri',
-                label: '� Dashboard',
-                uri: `${process.env.APP_URL}/dashboard`
+                label: '📊 Dashboard',
+                uri: `${getBaseUrl()}/dashboard`
               }
             ]
           }
@@ -1540,17 +1546,16 @@ export class LineService {
         altText: 'อัปเกรด Premium',
         template: {
           type: 'buttons',
-          text: '�🚀 อัปเกรดเป็น Premium',
-          actions: [
+          text: '�🚀 อัปเกรดเป็น Premium',            actions: [
             {
               type: 'uri',
               label: '💎 อัปเกรด Premium',
-              uri: `${process.env.APP_URL}/premium`
+              uri: `${getBaseUrl()}/premium`
             },
             {
               type: 'uri',
-              label: '� ดู Dashboard',
-              uri: `${process.env.APP_URL}/dashboard`
+              label: '📊 ดู Dashboard',
+              uri: `${getBaseUrl()}/dashboard`
             }
           ]
         }
@@ -1785,17 +1790,17 @@ export class LineService {
               {
                 type: 'uri',
                 label: '📊 Dashboard',
-                uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+                uri: `${getBaseUrl()}/dashboard?lineUserId=${lineUserId}&auto=true`
               },
               {
                 type: 'uri',
                 label: '📂 หมวดหมู่',
-                uri: `${process.env.APP_URL}/categories?lineUserId=${lineUserId}&auto=true`
+                uri: `${getBaseUrl()}/categories?lineUserId=${lineUserId}&auto=true`
               },
               {
                 type: 'uri',
                 label: '💎 Premium',
-                uri: `${process.env.APP_URL}/premium?lineUserId=${lineUserId}&auto=true`
+                uri: `${getBaseUrl()}/premium?lineUserId=${lineUserId}&auto=true`
               }
             ]
           }
@@ -1808,6 +1813,41 @@ export class LineService {
         text: '❌ ขณะนี้ไม่สามารถดึงข้อมูลภาพรวมได้ กรุณาลองใหม่ในภายหลัง\n\n🐱 ฟูกุขออภัยด้วยนะ!'
       }];
     }
+  }
+
+  // ⭐ เมธอดใหม่สำหรับการนำทางไป Dashboard (สำหรับคำสั่ง "ภาพรวม")
+  static async getDashboardNavigationMessage(lineUserId: string): Promise<Message[]> {
+    return [
+      {
+        type: 'text',
+        text: '📊 ภาพรวมการเงินของคุณ\n\n🚀 เปิดหน้า Dashboard เพื่อดูข้อมูลครบถ้วน:\n• สรุปรายรับ-รายจ่าย\n• กราฟและแผนภูมิ\n• การจัดการงบประมาณ\n• รายงานรายเดือน\n\n💡 เคล็ดลับ: เปิดในเบราว์เซอร์เพื่อประสบการณ์ที่ดีที่สุด!'
+      },
+      {
+        type: 'template',
+        altText: 'เปิดหน้าภาพรวม',
+        template: {
+          type: 'buttons',
+          text: '🎯 เลือกหน้าที่ต้องการ',
+          actions: [
+            {
+              type: 'uri',
+              label: '📊 ภาพรวมการเงิน',
+              uri: `${getBaseUrl()}/dashboard?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'uri',
+              label: '📈 ประวัติรายการ',
+              uri: `${getBaseUrl()}/transactions?lineUserId=${lineUserId}&auto=true`
+            },
+            {
+              type: 'uri',
+              label: '📂 จัดการหมวดหมู่',
+              uri: `${getBaseUrl()}/categories?lineUserId=${lineUserId}&auto=true`
+            }
+          ]
+        }
+      }
+    ];
   }
 
   // ⭐ เมธอดใหม่สำหรับการนำทางไปหมวดหมู่
@@ -1827,12 +1867,12 @@ export class LineService {
             {
               type: 'uri',
               label: '📂 จัดการหมวดหมู่',
-              uri: `${process.env.APP_URL}/categories?lineUserId=${lineUserId}&auto=true`
+              uri: `${getBaseUrl()}/categories?lineUserId=${lineUserId}&auto=true`
             },
             {
               type: 'uri',
               label: '📊 Dashboard',
-              uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+              uri: `${getBaseUrl()}/dashboard?lineUserId=${lineUserId}&auto=true`
             },
             {
               type: 'postback',
@@ -1862,12 +1902,12 @@ export class LineService {
             {
               type: 'uri',
               label: '📜 ดูประวัติ',
-              uri: `${process.env.APP_URL}/transactions?lineUserId=${lineUserId}&auto=true`
+              uri: `${getBaseUrl()}/transactions?lineUserId=${lineUserId}&auto=true`
             },
             {
               type: 'uri',
               label: '📊 Dashboard',
-              uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+              uri: `${getBaseUrl()}/dashboard?lineUserId=${lineUserId}&auto=true`
             },
             {
               type: 'postback',
@@ -1897,12 +1937,12 @@ export class LineService {
             {
               type: 'uri',
               label: '⚙️ ตั้งค่าระบบ',
-              uri: `${process.env.APP_URL}/settings?lineUserId=${lineUserId}&auto=true`
+              uri: `${getBaseUrl()}/settings?lineUserId=${lineUserId}&auto=true`
             },
             {
               type: 'uri',
               label: '📊 Dashboard',
-              uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+              uri: `${getBaseUrl()}/dashboard?lineUserId=${lineUserId}&auto=true`
             },
             {
               type: 'postback',
@@ -1932,12 +1972,12 @@ export class LineService {
             {
               type: 'uri',
               label: '💎 ดูแพคเกจ',
-              uri: `${process.env.APP_URL}/premium?lineUserId=${lineUserId}&auto=true`
+              uri: `${getBaseUrl()}/premium?lineUserId=${lineUserId}&auto=true`
             },
             {
               type: 'uri',
               label: '📊 Dashboard',
-              uri: `${process.env.APP_URL}/dashboard?lineUserId=${lineUserId}&auto=true`
+              uri: `${getBaseUrl()}/dashboard?lineUserId=${lineUserId}&auto=true`
             },
             {
               type: 'postback',

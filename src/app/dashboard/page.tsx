@@ -375,16 +375,16 @@ export default function DashboardPage() {
         {/* Free Plan Usage Banner */}
         {userPlan === 'free' && (
           <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-xl p-6 mb-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-orange-100 mr-4">
                   <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div>
+                <div className="flex-1">
                   <h3 className="text-lg font-bold text-orange-800">แผนฟรี - ใช้งานไปแล้ว</h3>
-                  <div className="flex items-center space-x-6 mt-2">
+                  <div className="flex flex-col space-y-2 mt-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-6">
                     <div>
                       <p className="text-sm text-orange-700">รายการเดือนนี้</p>
                       <div className="flex items-center space-x-2">
@@ -406,12 +406,14 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-              <Link
-                href="/premium"
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
-              >
-                🌟 อัปเกรด
-              </Link>
+              <div className="flex-shrink-0">
+                <Link
+                  href="/premium"
+                  className="inline-block px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium text-sm"
+                >
+                  🌟 อัปเกรด
+                </Link>
+              </div>
             </div>
           </div>
         )}
@@ -430,7 +432,7 @@ export default function DashboardPage() {
                       : 'bg-yellow-50 border-yellow-400'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                     <div className="flex items-center">
                       <div className={`p-2 rounded-full mr-3 ${
                         warning.level === 'danger' ? 'bg-red-100' : 'bg-yellow-100'
@@ -450,12 +452,14 @@ export default function DashboardPage() {
                         </p>
                       </div>
                     </div>
-                    <Link
-                      href="/premium"
-                      className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-sm font-medium"
-                    >
-                      อัปเกรด
-                    </Link>
+                    <div className="flex-shrink-0">
+                      <Link
+                        href="/premium"
+                        className="inline-block px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-sm font-medium"
+                      >
+                        อัปเกรด
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}

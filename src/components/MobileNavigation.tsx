@@ -5,16 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export function MobileNavigation() {
-  const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const closeMenu = () => {
-    setIsOpen(false);
-  };
 
   const navItems = [
     { name: 'ภาพรวม', href: '/dashboard', icon: 'chart-bar' },
@@ -83,109 +74,37 @@ export function MobileNavigation() {
         </div>
       </nav>
 
-      {/* Mobile Navigation Header */}
+      {/* Mobile Navigation Header - Simple */}
       <div className="lg:hidden bg-white shadow-lg border-b border-gray-200">
-        <div className="flex items-center justify-between px-4 h-16">
+        <div className="flex items-center justify-center px-4 h-16">
           <div className="flex items-center">
             <div className="text-xl mr-2">🐱</div>
             <Link href="/" className="text-xl font-bold text-blue-600">
               Fuku Neko
             </Link>
-            {/* Premium Badge สำหรับ Mobile */}
-            <span className="ml-3 px-2 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-medium rounded-full">
-              ✨ Premium
-            </span>
           </div>
-          <button
-            onClick={toggleMenu}
-            className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-            aria-label="เปิดเมนู"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {isOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
-          </button>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
-      {isOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50"
-          onClick={closeMenu}
-        >
-          <div
-            className="fixed inset-y-0 right-0 w-64 bg-white shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200">
-              <span className="text-lg font-semibold text-gray-900">เมนูหลัก</span>
-              <button
-                onClick={closeMenu}
-                className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <nav className="px-4 py-6 space-y-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                    pathname === item.href
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
-                  }`}
-                  onClick={closeMenu}
-                >
-                  <span className="mr-3">{getIcon(item.icon)}</span>
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
-
-      {/* Bottom Navigation for Mobile */}
+      {/* Bottom Navigation for Mobile - Centered */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-        <div className="grid grid-cols-5 h-16">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center justify-center text-xs font-medium transition-colors duration-200 ${
-                pathname === item.href
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:text-blue-600'
-              }`}
-            >
-              <span className="mb-1">{getIcon(item.icon)}</span>
-              <span>{item.name}</span>
-            </Link>
-          ))}
+        <div className="flex justify-center">
+          <div className="grid grid-cols-4 max-w-md w-full h-16">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center text-xs font-medium transition-colors duration-200 ${
+                  pathname === item.href
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:text-blue-600'
+                }`}
+              >
+                <span className="mb-1">{getIcon(item.icon)}</span>
+                <span>{item.name}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 
